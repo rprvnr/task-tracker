@@ -1,5 +1,7 @@
 # Task Tracker
 
+> **Work edition:** a team version with projects, people, time tracking and Outlook/Wispr Flow scanning is in [`work/`](work/). See [work/README.md](work/README.md).
+
 A one-file, mobile-first daily task tracker. Open `index.html` in a browser and it works. There's nothing to install.
 
 ## Features

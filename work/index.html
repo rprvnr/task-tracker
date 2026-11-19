@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Team Task Tracker</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --panel2: #fafbfc; --ink: #1b1f24; --muted: #6b7280; --faint: #9ca3af;
+    --line: #e5e7eb; --hover: #f1f3f6; --accent: #4f46e5; --accent-ink: #ffffff; --accent-soft: #eef0ff;
+    --danger: #d14343; --danger-soft: #fdecec; --warn: #b45309; --warn-soft: #fef3e2; --ok: #15803d; --ok-soft: #e7f6ec;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.08);
+    --radius: 10px; --side: 248px; --detail: 400px;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --panel: #171a20; --panel2: #1b1f26; --ink: #e8eaed; --muted: #9aa3ad; --faint: #6b7380;
+      --line: #272b33; --hover: #20242c; --accent: #8b8cf8; --accent-ink: #0f1115; --accent-soft: #24264a;
+      --danger: #f07171; --danger-soft: #3a1f22; --warn: #f0b45a; --warn-soft: #3a2d17; --ok: #5fd08a; --ok-soft: #173325;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.45; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; padding: 0; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); }
+  .app { display: grid; grid-template-columns: var(--side) 1fr; height: 100vh; height: 100dvh; }
+  .app.with-detail { grid-template-columns: var(--side) 1fr var(--detail); }
+
+  /* Sidebar */
+  aside { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 12px; font-weight: 700; font-size: 15px; }
+  .logo { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 15px; }
+  .navscroll { overflow-y: auto; flex: 1; padding: 4px 10px 12px; }
+  .nav { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 10px; border-radius: 8px; text-align: left; color: var(--ink); }
+  .nav:hover { background: var(--hover); }
+  .nav.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav .ic { width: 18px; text-align: center; opacity: .85; }
+  .nav .lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav .cnt { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .nav .cnt.hot { background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 0 7px; font-weight: 600; }
+  .sect { display: flex; align-items: center; justify-content: space-between; margin: 16px 10px 4px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .sect button { width: 22px; height: 22px; border-radius: 6px; font-size: 16px; line-height: 1; color: var(--muted); }
+  .sect button:hover { background: var(--hover); color: var(--ink); }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .av { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10px; font-weight: 700; color: #fff; flex: none; }
+  .sidefoot { border-top: 1px solid var(--line); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .sidefoot button { padding: 6px 8px; border-radius: 6px; }
+  .sidefoot button:hover { background: var(--hover); color: var(--ink); }
+  .syncdot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+  .syncdot.ok { background: var(--ok); } .syncdot.busy { background: var(--warn); } .syncdot.warn { background: var(--danger); }
+  #syncText { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Main */
+  main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .top { display: flex; align-items: center; gap: 12px; padding: 18px 28px 10px; }
+  .menu { display: none; width: 34px; height: 34px; border-radius: 8px; font-size: 18px; }
+  .menu:hover { background: var(--hover); }
+  .ttl { flex: 1; min-width: 0; }
+  .ttl h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+  .ttl .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .search { width: 240px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .search:focus, .field input:focus, .field select:focus, .field textarea:focus, .quick input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); font-weight: 600; font-size: 13px; max-width: 320px; }
+  .pill span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .pill[hidden] { display: none; }
+  .scroll { overflow-y: auto; flex: 1; padding: 0 28px 80px; }
+  .wrap { max-width: 920px; }
+  .quick { position: relative; margin: 6px 0 14px; }
+  .quick input { width: 100%; padding: 12px 14px 12px 40px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .quick .plus { position: absolute; left: 14px; top: 11px; color: var(--accent); font-size: 18px; font-weight: 600; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 20px; }
+  .hint code { background: var(--hover); padding: 0 5px; border-radius: 4px; font-size: 11.5px; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; min-width: 120px; }
+  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--muted); }
+  .stat.bad b { color: var(--danger); }
+  .group { margin-bottom: 18px; }
+  .gh { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 6px 2px; }
+  .gh.bad { color: var(--danger); }
+  .gh .n { font-weight: 500; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); cursor: pointer; }
+  .row:first-child { border-top: 0; }
+  .row:hover { background: var(--hover); }
+  .row.sel { background: var(--accent-soft); }
+  .chk { width: 18px; height: 18px; border-radius: 50%; border: 1.6px solid var(--faint); margin-top: 1px; flex: none; display: grid; place-items: center; color: transparent; font-size: 11px; }
+  .chk:hover { border-color: var(--accent); }
+  .chk.high { border-color: var(--danger); }
+  .row.done .chk { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .row.done .t { text-decoration: line-through; color: var(--muted); }
+  .rb { flex: 1; min-width: 0; }
+  .t { overflow-wrap: anywhere; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .chip.bad { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
+  .chip.soon { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .chip.doing { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .chip.run { color: var(--danger); background: var(--danger-soft); border-color: transparent; font-weight: 600; }
+  .chip .av { width: 16px; height: 16px; font-size: 8.5px; }
+  .tbtn { width: 28px; height: 28px; border-radius: 7px; color: var(--muted); flex: none; font-size: 12px; opacity: 0; }
+  .row:hover .tbtn, .tbtn.on { opacity: 1; }
+  .tbtn:hover { background: var(--panel); color: var(--ink); }
+  .tbtn.on { color: var(--danger); }
+  .empty { text-align: center; color: var(--muted); padding: 48px 20px; border: 1px dashed var(--line); border-radius: var(--radius); background: var(--panel); }
+  .empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); font-weight: 500; white-space: nowrap; }
+  .btn:hover { background: var(--hover); }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.pri:hover { filter: brightness(1.05); }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.danger { color: var(--danger); }
+  .btn.sm { padding: 4px 9px; font-size: 12.5px; }
+  .btn[disabled] { opacity: .55; cursor: default; }
+
+  /* Inbox */
+  .scanbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .scanbar .txt { flex: 1; min-width: 220px; }
+  .scanbar .txt b { display: block; }
+  .note { font-size: 13px; padding: 10px 14px; border-radius: 8px; background: var(--accent-soft); margin-bottom: 14px; }
+  .note.warn { background: var(--warn-soft); color: var(--warn); }
+  .sugg { display: flex; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); align-items: flex-start; }
+  .sugg:first-child { border-top: 0; }
+  .sugg .rb input { width: 100%; border: 1px solid transparent; background: transparent; padding: 3px 6px; margin: -3px -6px; border-radius: 6px; font-weight: 500; }
+  .sugg .rb input:hover, .sugg .rb input:focus { border-color: var(--line); background: var(--panel2); outline: none; }
+  .sugg .acts { display: flex; gap: 6px; flex: none; }
+  .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; display: inline-block; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  /* Detail */
+  .detail { background: var(--panel); border-left: 1px solid var(--line); display: none; flex-direction: column; min-height: 0; }
+  .app.with-detail .detail { display: flex; }
+  .dh { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .dh .x { width: 30px; height: 30px; border-radius: 7px; font-size: 16px; color: var(--muted); }
+  .dh .x:hover { background: var(--hover); color: var(--ink); }
+  .db { overflow-y: auto; padding: 16px 18px 40px; flex: 1; }
+  .dtitle { width: 100%; border: 1px solid transparent; border-radius: 8px; padding: 6px 8px; margin: -6px -8px 10px; font-size: 18px; font-weight: 600; resize: none; background: transparent; }
+  .dtitle:hover, .dtitle:focus { border-color: var(--line); outline: none; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 500; }
+  .field.full { grid-column: 1 / -1; }
+  .field input, .field select, .field textarea { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--panel); color: var(--ink); font-size: 13.5px; width: 100%; min-width: 0; }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .blk { margin-top: 16px; }
+  .blk > .lab { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+  .tog { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tog button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px 3px 4px; font-size: 12.5px; }
+  .tog button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .tog button.add { padding: 3px 10px; color: var(--muted); }
+  .timebox { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--panel2); }
+  .timebox .big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; border-radius: 3px; background: var(--line); margin: 8px 0 10px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .bar i.over { background: var(--danger); }
+  .src { font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line); }
+
+  /* Modal + toast */
+  .scrim { position: fixed; inset: 0; background: rgba(15,17,21,.45); display: none; z-index: 40; }
+  .scrim.show { display: block; }
+  .modal { position: fixed; z-index: 50; left: 50%; top: 12vh; transform: translateX(-50%); width: min(480px, calc(100vw - 24px)); background: var(--panel); border-radius: 14px; box-shadow: var(--shadow); display: none; max-height: 76vh; overflow-y: auto; }
+  .modal.show { display: block; }
+  .modal h2 { margin: 0; padding: 18px 20px 4px; font-size: 17px; }
+  .modal .mb { padding: 10px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .modal .mf { padding: 12px 20px 18px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+  .modal .check { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--ink); font-weight: 400; }
+  .modal .check input { width: auto; margin-top: 3px; }
+  .modal .help { font-size: 12px; color: var(--muted); font-weight: 400; }
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .swatches button { width: 24px; height: 24px; border-radius: 6px; border: 2px solid transparent; }
+  .swatches button.on { border-color: var(--ink); }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: #1b1f24; color: #fff; padding: 10px 14px; border-radius: 10px; display: flex; gap: 14px; align-items: center; opacity: 0; pointer-events: none; transition: .2s; z-index: 60; box-shadow: var(--shadow); }
+  .toast.show { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
+  .toast button { color: #a5b4fc; font-weight: 600; }
+
+  /* Narrow screens */
+  @media (max-width: 1180px) {
+    .app.with-detail { grid-template-columns: var(--side) 1fr; }
+    .app.with-detail .detail { position: fixed; right: 0; top: 0; bottom: 0; width: min(var(--detail), 100vw); z-index: 30; box-shadow: var(--shadow); }
+  }
+  @media (max-width: 820px) {
+    .app, .app.with-detail { grid-template-columns: 1fr; }
+    aside { position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 45; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow); }
+    .app.nav-open aside { transform: none; }
+    .menu { display: grid; place-items: center; }
+    .top { padding: 12px 14px 6px; flex-wrap: wrap; }
+    .search { width: 100%; order: 5; }
+    .scroll { padding: 0 14px 90px; }
+    .app.with-detail .detail { width: 100vw; }
+    .tbtn { opacity: 1; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .sugg { flex-wrap: wrap; }
+    .sugg .acts { width: 100%; justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside id="side">
+    <div class="brand"><div class="logo">✓</div><span>Team Tasks</span></div>
+    <div class="navscroll" id="nav"></div>
+    <div class="sidefoot">
+      <span class="syncdot" id="syncDot"></span><span id="syncText">Loading…</span>
+      <button id="btnSettings" title="Settings">⚙ Settings</button>
+    </div>
+  </aside>
+  <main>
+    <header class="top">
+      <button class="menu" id="btnMenu" aria-label="Menu">☰</button>
+      <div class="ttl"><h1 id="vTitle">Today</h1><div class="sub" id="vSub"></div></div>
+      <button class="pill" id="timerPill" hidden title="Stop timer">■ <span id="timerText"></span></button>
+      <input class="search" id="search" type="search" placeholder="Search tasks  ( / )" autocomplete="off">
+    </header>
+    <div class="scroll"><div class="wrap" id="main"></div></div>
+  </main>
+  <section class="detail" id="detail"></section>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastUndo">Undo</button></div>
+
+<script>
+(function () {
+  "use strict";
+  var M365 = "Microsoft 365", FLOW = "Wispr Flow", LS_KEY = "team-tasks-state";
+  var COLORS = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#64748b", "#14b8a6", "#a16207"];
+  var ESTIMATES = [0, 15, 30, 45, 60, 90, 120, 180, 240, 360, 480];
+
+  /* ---------- State ---------- */
+  function blank() {
+    return {
+      v: 1, nextId: 1, tasks: [], projects: [], people: [],
+      inbox: { lastScanMail: null, lastScanFlow: null, items: [], seen: [], dismissed: [], note: "" },
+      settings: { me: "", teamMailbox: "", includeShared: true, forTeam: true, firstDays: 7 }
+    };
+  }
+  var state = blank();
+  var view = "today", openId = null, query = "", profileName = "";
+  var localMode = false, dbRef = null, writing = false, dirty = false, loaded = false, canSave = null, saveTimer = null, serverOk = false, heldSince = null, bootAt = new Date().toISOString();
+  var scanning = false, scanNote = "", scanWarn = false, undoSnap = null, toastTimer = null;
+
+  function normalize() {
+    var b = blank();
+    ["tasks", "projects", "people"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
+    if (!state.nextId) state.nextId = 1;
+    state.inbox = Object.assign(b.inbox, state.inbox || {});
+    ["items", "seen", "dismissed"].forEach(function (k) { if (!Array.isArray(state.inbox[k])) state.inbox[k] = []; });
+    if (state.inbox.seen.length > 4000) state.inbox.seen = state.inbox.seen.slice(-4000);
+    if (state.inbox.dismissed.length > 600) state.inbox.dismissed = state.inbox.dismissed.slice(-600);
+    state.settings = Object.assign(b.settings, state.settings || {});
+    var pids = {}, peids = {};
+    state.projects.forEach(function (p) { pids[p.id] = 1; if (!p.color) p.color = COLORS[0]; });
+    state.people.forEach(function (p) { peids[p.id] = 1; });
+    state.tasks.forEach(function (t) {
+      if (!t.status) t.status = "todo";
+      if (!t.priority) t.priority = "normal";
+      if (!t.owner || (t.owner !== "me" && !peids[t.owner])) t.owner = "me";
+      if (t.project && !pids[t.project]) t.project = "";
+      if (t.waiting && !peids[t.waiting]) t.waiting = "";
+      t.people = (t.people || []).filter(function (id) { return peids[id]; });
+      if (typeof t.spent !== "number") t.spent = 0;
+      if (typeof t.estimate !== "number") t.estimate = 0;
+      if (!t.created) t.created = new Date().toISOString();
+      if (t.status === "done" && !t.doneAt) t.doneAt = new Date().toISOString();
+      if (t.status !== "done") t.doneAt = null;
+    });
+  }
+  function newId(p) { return p + (state.nextId++); }
+
+  /* ---------- Small helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function lsGet(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function today() { return ymd(new Date()); }
+  function addDays(s, n) { var d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); }
+  function parseYmd(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function dayDiff(s) { return Math.round((parseYmd(s) - parseYmd(today())) / 864e5); }
+  function fmtTime(hm) { if (!hm) return ""; var p = hm.split(":"); var d = new Date(); d.setHours(+p[0], +p[1], 0, 0); return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function fmtDate(s, long) {
+    var dd = dayDiff(s);
+    if (dd === 0) return "Today"; if (dd === 1) return "Tomorrow"; if (dd === -1) return "Yesterday";
+    var d = parseYmd(s);
+    if (dd > 1 && dd < 7) return d.toLocaleDateString([], { weekday: long ? "long" : "short" });
+    return d.toLocaleDateString([], { month: "short", day: "numeric", year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined });
+  }
+  function fmtMin(m) { m = Math.round(m || 0); if (!m) return "0m"; var h = Math.floor(m / 60), r = m % 60; return h ? h + "h" + (r ? " " + r + "m" : "") : r + "m"; }
+  function fmtClock(sec) { sec = Math.max(0, Math.floor(sec)); return Math.floor(sec / 3600) + ":" + pad(Math.floor(sec / 60) % 60) + ":" + pad(sec % 60); }
+  function spentSec(t) { return (t.spent || 0) + (t.timerStart ? (Date.now() - Date.parse(t.timerStart)) / 1000 : 0); }
+  function initials(n) { var p = String(n || "?").trim().split(/\s+/); return ((p[0] || "?")[0] + (p.length > 1 ? p[p.length - 1][0] : "")).toUpperCase(); }
+  function hue(s) { var h = 0; s = String(s || ""); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return "hsl(" + h + " 55% 48%)"; }
+  function avatar(name) { return '<span class="av" style="background:' + hue(name) + '">' + esc(initials(name)) + "</span>"; }
+  function meName() { return state.settings.me || profileName || "Me"; }
+  function project(id) { for (var i = 0; i < state.projects.length; i++) if (state.projects[i].id === id) return state.projects[i]; return null; }
+  function person(id) { for (var i = 0; i < state.people.length; i++) if (state.people[i].id === id) return state.people[i]; return null; }
+  function personName(id) { if (id === "me") return meName(); var p = person(id); return p ? p.name : ""; }
+  function task(id) { for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === id) return state.tasks[i]; return null; }
+  function key(s) { return String(s || "").trim().toLowerCase().replace(/\s+/g, " "); }
+  function isMe(name) {
+    var k = key(name); if (!k || k === "me" || k === "i" || k === "myself") return true;
+    var m = key(meName()); return k === m || (m && k === m.split(" ")[0] && m !== "me");
+  }
+  function findProject(name, create) {
+    var k = key(name); if (!k) return "";
+    for (var i = 0; i < state.projects.length; i++) if (key(state.projects[i].name) === k) return state.projects[i].id;
+    if (!create) return "";
+    var p = { id: newId("p"), name: String(name).trim().slice(0, 60), color: COLORS[state.projects.length % COLORS.length] };
+    state.projects.push(p); return p.id;
+  }
+  function findPerson(name, create) {
+    if (isMe(name)) return "me";
+    var k = key(name);
+    for (var i = 0; i < state.people.length; i++) {
+      var pk = key(state.people[i].name);
+      if (pk === k || pk.split(" ")[0] === k || k.split(" ")[0] === pk) return state.people[i].id;
+    }
+    if (!create) return "";
+    var p = { id: newId("u"), name: String(name).trim().slice(0, 60), email: "" };
+    state.people.push(p); return p.id;
+  }
+  function isOverdue(t) {
+    if (!t.due || t.status === "done") return false;
+    var dd = dayDiff(t.due); if (dd < 0) return true;
+    if (dd === 0 && t.time) { var n = new Date(); return pad(n.getHours()) + ":" + pad(n.getMinutes()) > t.time; }
+    return false;
+  }
+
+  /* ---------- Quick add: "Send deck to client #Q4 Launch @Sam fri 3pm ~1h !high" ---------- */
+  var WD = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  function nextWeekday(i) { var d = new Date(); var diff = (i - d.getDay() + 7) % 7 || 7; d.setDate(d.getDate() + diff); return ymd(d); }
+  function parseQuick(s) {
+    var o = { title: "", project: "", owner: "", people: [], priority: "", due: "", time: "", estimate: 0 }, keep = [];
+    s.trim().split(/\s+/).forEach(function (w) {
+      var lw = w.toLowerCase(), m;
+      if (/^#\S/.test(w)) { o.project = w.slice(1).replace(/[-_]/g, " "); return; }
+      if (/^@\S/.test(w)) { var n = w.slice(1).replace(/[-_]/g, " "); if (!o.owner) o.owner = n; else o.people.push(n); return; }
+      if (lw === "!high" || lw === "!!" || lw === "!1") { o.priority = "high"; return; }
+      if (lw === "!low" || lw === "!3") { o.priority = "low"; return; }
+      if ((m = lw.match(/^~(\d+(?:\.\d+)?)(m|min|mins|h|hr|hrs|d)?$/))) { var v = parseFloat(m[1]), u = m[2] || "m"; o.estimate = Math.round(u[0] === "h" ? v * 60 : u === "d" ? v * 480 : v); return; }
+      if (lw === "today") { o.due = today(); return; }
+      if (lw === "tomorrow" || lw === "tmrw") { o.due = addDays(today(), 1); return; }
+      if (lw === "eod") { o.due = o.due || today(); o.time = "17:00"; return; }
+      var wi = WD.indexOf(lw.slice(0, 3));
+      if (wi >= 0 && /^(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(day|nesday|rsday|urday)?$/.test(lw)) { o.due = nextWeekday(wi); return; }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(lw)) { o.due = lw; return; }
+      if ((m = lw.match(/^(\d{1,2})\/(\d{1,2})$/))) {
+        var d = new Date(new Date().getFullYear(), +m[1] - 1, +m[2]);
+        if (ymd(d) < today()) d.setFullYear(d.getFullYear() + 1);
+        if (!isNaN(d)) { o.due = ymd(d); return; }
+      }
+      if ((m = lw.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/)) && +m[1] <= 12) { var h = +m[1] % 12 + (m[3] === "pm" ? 12 : 0); o.time = pad(h) + ":" + (m[2] || "00"); return; }
+      if ((m = lw.match(/^([01]?\d|2[0-3]):([0-5]\d)$/))) { o.time = pad(+m[1]) + ":" + m[2]; return; }
+      keep.push(w);
+    });
+    o.title = keep.join(" ");
+    if (o.time && !o.due) o.due = today();
+    return o;
+  }
+  function quickPreview(s) {
+    if (!s.trim()) return 'Type a task. Add <code>#project</code> <code>@person</code> <code>fri</code> <code>3pm</code> <code>~30m</code> <code>!high</code> — press Enter to add.';
+    var o = parseQuick(s), bits = [];
+    if (o.project) bits.push('<span class="chip"><span class="dot" style="background:' + esc((project(findProject(o.project)) || {}).color || "#999") + '"></span>' + esc(o.project) + (findProject(o.project) ? "" : " (new)") + "</span>");
+    if (o.owner) bits.push('<span class="chip">' + avatar(isMe(o.owner) ? meName() : o.owner) + esc(isMe(o.owner) ? "Me" : o.owner) + "</span>");
+    o.people.forEach(function (p) { bits.push('<span class="chip">+ ' + esc(p) + "</span>"); });
+    if (o.due) bits.push('<span class="chip">📅 ' + esc(fmtDate(o.due)) + (o.time ? " " + esc(fmtTime(o.time)) : "") + "</span>");
+    if (o.estimate) bits.push('<span class="chip">⏳ ' + fmtMin(o.estimate) + "</span>");
+    if (o.priority) bits.push('<span class="chip' + (o.priority === "high" ? " bad" : "") + '">' + (o.priority === "high" ? "High" : "Low") + " priority</span>");
+    return (bits.length ? bits.join("") : "") + ' <span>Enter to add</span>';
+  }
+  function addQuick(s) {
+    var o = parseQuick(s); if (!o.title) return null;
+    var ctxProject = view.indexOf("project:") === 0 ? view.slice(8) : "";
+    var ctxPerson = view.indexOf("person:") === 0 ? view.slice(7) : "";
+    var t = {
+      id: newId("t"), title: o.title.slice(0, 200), notes: "", status: "todo",
+      priority: o.priority || "normal",
+      project: o.project ? findProject(o.project, true) : ctxProject,
+      owner: o.owner ? findPerson(o.owner, true) : (ctxPerson || "me"),
+      waiting: "", people: o.people.map(function (n) { return findPerson(n, true); }).filter(function (id) { return id !== "me"; }),
+      due: o.due || (view === "today" ? today() : ""), time: o.time, estimate: o.estimate, spent: 0, timerStart: null,
+      created: new Date().toISOString(), doneAt: null, source: null
+    };
+    state.tasks.push(t); return t;
+  }
+
+  /* ---------- Views ---------- */
+  function matches(t) {
+    if (!query) return true;
+    var q = query.toLowerCase(), p = project(t.project);
+    var hay = [t.title, t.notes, p && p.name, personName(t.owner), personName(t.waiting)].concat(t.people.map(personName)).join(" ").toLowerCase();
+    return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
+  }
+  var PRI = { high: 0, normal: 1, low: 2 };
+  function sortTasks(a, b) {
+    if ((a.status === "doing") !== (b.status === "doing")) return a.status === "doing" ? -1 : 1;
+    if (PRI[a.priority] !== PRI[b.priority]) return PRI[a.priority] - PRI[b.priority];
+    var ad = a.due ? a.due + (a.time || "99") : "9", bd = b.due ? b.due + (b.time || "99") : "9";
+    if (ad !== bd) return ad < bd ? -1 : 1;
+    return a.created < b.created ? -1 : 1;
+  }
+  function open(t) { return t.status !== "done"; }
+  function isToday(t) { return open(t) && ((t.due && t.due <= today()) || t.status === "doing"); }
+  function groupBy(list, fn, order) {
+    var m = {}, keys = [];
+    list.forEach(function (t) { var k = fn(t); if (!m[k]) { m[k] = []; keys.push(k); } m[k].push(t); });
+    if (order) keys.sort(order);
+    return keys.map(function (k) { return { key: k, tasks: m[k].sort(sortTasks) }; });
+  }
+  function groupsFor(v) {
+    var all = state.tasks.filter(matches), T = today();
+    if (v === "today") {
+      var od = all.filter(function (t) { return open(t) && t.due && t.due < T; });
+      var td = all.filter(function (t) { return open(t) && t.due === T; });
+      var dg = all.filter(function (t) { return open(t) && t.status === "doing" && (!t.due || t.due > T); });
+      return [{ title: "Overdue", bad: true, tasks: od.sort(sortTasks) }, { title: "Today", tasks: td.sort(sortTasks) }, { title: "In progress", tasks: dg.sort(sortTasks) }];
+    }
+    if (v === "upcoming") {
+      var up = all.filter(function (t) { return open(t) && t.due && t.due > T; });
+      return groupBy(up, function (t) { return t.due; }, function (a, b) { return a < b ? -1 : 1; }).map(function (g) {
+        return { title: fmtDate(g.key, true) + (dayDiff(g.key) > 1 && dayDiff(g.key) < 7 ? " · " + parseYmd(g.key).toLocaleDateString([], { month: "short", day: "numeric" }) : ""), tasks: g.tasks };
+      });
+    }
+    if (v === "all") {
+      return groupBy(all.filter(open), function (t) { return t.project || "~"; }, function (a, b) {
+        if (a === "~") return 1; if (b === "~") return -1; return (project(a).name.toLowerCase() < project(b).name.toLowerCase()) ? -1 : 1;
+      }).map(function (g) { var p = project(g.key); return { title: p ? p.name : "No project", color: p && p.color, tasks: g.tasks }; });
+    }
+    if (v === "waiting") {
+      return groupBy(all.filter(function (t) { return open(t) && t.waiting; }), function (t) { return t.waiting; }).map(function (g) { return { title: "Waiting on " + personName(g.key), avatar: personName(g.key), tasks: g.tasks }; });
+    }
+    if (v === "done") {
+      var dn = all.filter(function (t) { return t.status === "done"; }).sort(function (a, b) { return a.doneAt < b.doneAt ? 1 : -1; });
+      var wk = addDays(T, -6);
+      return [
+        { title: "Today", tasks: dn.filter(function (t) { return ymd(new Date(t.doneAt)) === T; }) },
+        { title: "Last 7 days", tasks: dn.filter(function (t) { var d = ymd(new Date(t.doneAt)); return d < T && d >= wk; }) },
+        { title: "Earlier", tasks: dn.filter(function (t) { return ymd(new Date(t.doneAt)) < wk; }).slice(0, 200) }
+      ];
+    }
+    if (v.indexOf("project:") === 0) {
+      var pid = v.slice(8), pt = all.filter(function (t) { return t.project === pid; });
+      return [
+        { title: "In progress", tasks: pt.filter(function (t) { return t.status === "doing"; }).sort(sortTasks) },
+        { title: "To do", tasks: pt.filter(function (t) { return t.status === "todo" && !t.waiting; }).sort(sortTasks) },
+        { title: "Waiting", tasks: pt.filter(function (t) { return t.status === "todo" && t.waiting; }).sort(sortTasks) },
+        { title: "Done", tasks: pt.filter(function (t) { return t.status === "done"; }).sort(function (a, b) { return a.doneAt < b.doneAt ? 1 : -1; }).slice(0, 30) }
+      ];
+    }
+    if (v.indexOf("person:") === 0) {
+      var uid = v.slice(7);
+      return [
+        { title: "Owns", tasks: all.filter(function (t) { return open(t) && t.owner === uid; }).sort(sortTasks) },
+        { title: "You're waiting on them", tasks: all.filter(function (t) { return open(t) && t.waiting === uid; }).sort(sortTasks) },
+        { title: "Involved", tasks: all.filter(function (t) { return open(t) && t.owner !== uid && t.waiting !== uid && t.people.indexOf(uid) >= 0; }).sort(sortTasks) },
+        { title: "Done recently", tasks: all.filter(function (t) { return !open(t) && (t.owner === uid || t.people.indexOf(uid) >= 0); }).sort(function (a, b) { return a.doneAt < b.doneAt ? 1 : -1; }).slice(0, 15) }
+      ];
+    }
+    return [];
+  }
+  function statsFor(list) {
+    var o = list.filter(open);
+    return {
+      open: o.length, overdue: o.filter(isOverdue).length,
+      est: o.reduce(function (s, t) { return s + (t.estimate || 0); }, 0),
+      spent: list.reduce(function (s, t) { return s + spentSec(t); }, 0) / 60,
+      done: list.length - o.length
+    };
+  }
+
+  /* ---------- Render ---------- */
+  function navItem(v, ic, label, cnt, hot) {
+    return '<button class="nav' + (view === v ? " on" : "") + '" data-view="' + esc(v) + '"><span class="ic">' + ic + '</span><span class="lbl">' + esc(label) + "</span>" +
+      (cnt ? '<span class="cnt' + (hot ? " hot" : "") + '">' + cnt + "</span>" : "") + "</button>";
+  }
+  function renderNav() {
+    var T = today(), o = state.tasks.filter(open);
+    var h = navItem("inbox", "✦", "Suggestions", state.inbox.items.length, state.inbox.items.length > 0) +
+      navItem("today", "☀", "Today", o.filter(isToday).length) +
+      navItem("upcoming", "📅", "Upcoming", o.filter(function (t) { return t.due && t.due > T; }).length) +
+      navItem("all", "≡", "All open tasks", o.length) +
+      navItem("waiting", "⏳", "Waiting on", o.filter(function (t) { return t.waiting; }).length) +
+      navItem("done", "✓", "Done", 0);
+    h += '<div class="sect">Projects<button data-act="newProject" title="New project">+</button></div>';
+    if (!state.projects.length) h += '<div class="muted" style="padding:2px 10px;font-size:12.5px">No projects yet</div>';
+    state.projects.slice().sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }).forEach(function (p) {
+      h += navItem("project:" + p.id, '<span class="dot" style="background:' + esc(p.color) + '"></span>', p.name, o.filter(function (t) { return t.project === p.id; }).length);
+    });
+    h += '<div class="sect">People<button data-act="newPerson" title="Add person">+</button></div>';
+    if (!state.people.length) h += '<div class="muted" style="padding:2px 10px;font-size:12.5px">Add teammates to assign work</div>';
+    state.people.slice().sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }).forEach(function (p) {
+      h += navItem("person:" + p.id, avatar(p.name), p.name, o.filter(function (t) { return t.owner === p.id || t.waiting === p.id; }).length);
+    });
+    $("nav").innerHTML = h;
+  }
+  function rowHtml(t) {
+    var chips = [], p = project(t.project);
+    if (t.status === "doing") chips.push('<span class="chip doing">In progress</span>');
+    if (t.due) {
+      var cls = isOverdue(t) ? " bad" : (dayDiff(t.due) <= 1 && open(t) ? " soon" : "");
+      chips.push('<span class="chip' + cls + '">📅 ' + esc(fmtDate(t.due)) + (t.time ? " · " + esc(fmtTime(t.time)) : "") + "</span>");
+    }
+    if (p && view !== "project:" + p.id) chips.push('<span class="chip"><span class="dot" style="background:' + esc(p.color) + '"></span>' + esc(p.name) + "</span>");
+    if (t.owner !== "me" && view !== "person:" + t.owner) chips.push('<span class="chip">' + avatar(personName(t.owner)) + esc(personName(t.owner)) + "</span>");
+    if (t.waiting && view !== "waiting") chips.push('<span class="chip soon">⏳ ' + esc(personName(t.waiting)) + "</span>");
+    if (t.people.length) chips.push('<span class="chip" title="' + esc(t.people.map(personName).join(", ")) + '">👥 ' + t.people.length + "</span>");
+    var sp = spentSec(t);
+    if (t.timerStart) chips.push('<span class="chip run" data-live="' + esc(t.id) + '">● ' + fmtClock(sp) + "</span>");
+    else if (t.estimate || sp >= 60) chips.push('<span class="chip">⏱ ' + (sp >= 60 ? fmtMin(sp / 60) : "0m") + (t.estimate ? " / " + fmtMin(t.estimate) : "") + "</span>");
+    if (t.priority === "high") chips.push('<span class="chip bad">High</span>');
+    if (t.source) chips.push('<span class="chip" title="' + esc(t.source.from || "") + '">↳ ' + esc(t.source.kind || "Scan") + "</span>");
+    return '<div class="row' + (t.status === "done" ? " done" : "") + (openId === t.id ? " sel" : "") + '" data-id="' + esc(t.id) + '">' +
+      '<button class="chk' + (t.priority === "high" ? " high" : "") + '" data-act="toggle" aria-label="Complete">✓</button>' +
+      '<div class="rb"><div class="t">' + esc(t.title) + "</div>" + (chips.length ? '<div class="meta">' + chips.join("") + "</div>" : "") + "</div>" +
+      (t.status !== "done" ? '<button class="tbtn' + (t.timerStart ? " on" : "") + '" data-act="timer" title="' + (t.timerStart ? "Stop timer" : "Start timer") + '">' + (t.timerStart ? "■" : "▶") + "</button>" : "") +
+      "</div>";
+  }
+  function quickHtml() {
+    var ph = view.indexOf("project:") === 0 ? "Add a task to " + ((project(view.slice(8)) || {}).name || "this project")
+      : view.indexOf("person:") === 0 ? "Add a task for " + personName(view.slice(7))
+      : view === "today" ? "Add a task for today" : "Add a task";
+    return '<div class="quick"><span class="plus">+</span><input id="quick" placeholder="' + esc(ph) + '  (N)" autocomplete="off"><div class="hint" id="qhint">' + quickPreview("") + "</div></div>";
+  }
+  function renderMain() {
+    var title = "", sub = "", h = "";
+    if (view === "inbox") { renderInbox(); return; }
+    var groups = groupsFor(view);
+    if (view === "today") { title = "Today"; sub = new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }); }
+    else if (view === "upcoming") { title = "Upcoming"; sub = "Everything with a future due date"; }
+    else if (view === "all") { title = "All open tasks"; sub = "Grouped by project"; }
+    else if (view === "waiting") { title = "Waiting on"; sub = "Tasks blocked on someone else"; }
+    else if (view === "done") { title = "Done"; sub = "Completed work and the time it took"; }
+    else if (view.indexOf("project:") === 0) {
+      var p = project(view.slice(8)); if (!p) { view = "today"; return renderMain(); }
+      title = '<span class="dot" style="background:' + esc(p.color) + ';width:14px;height:14px"></span>' + esc(p.name);
+      sub = '<button class="btn sm ghost" data-act="editProject">Edit project</button>';
+      h += statsHtml(state.tasks.filter(function (t) { return t.project === p.id; }));
+    } else if (view.indexOf("person:") === 0) {
+      var u = person(view.slice(7)); if (!u) { view = "today"; return renderMain(); }
+      title = avatar(u.name).replace('class="av"', 'class="av" style="width:28px;height:28px;font-size:12px;background:' + hue(u.name) + '"') + esc(u.name);
+      sub = (u.email ? esc(u.email) + " · " : "") + '<button class="btn sm ghost" data-act="editPerson">Edit person</button>';
+      h += statsHtml(state.tasks.filter(function (t) { return t.owner === u.id || t.waiting === u.id || t.people.indexOf(u.id) >= 0; }));
+    }
+    $("vTitle").innerHTML = view.indexOf(":") > 0 ? title : esc(title);
+    $("vSub").innerHTML = view.indexOf(":") > 0 ? sub : esc(sub);
+    if (view !== "done") h = quickHtml() + h;
+    var any = false;
+    groups.forEach(function (g) {
+      if (!g.tasks.length) return; any = true;
+      h += '<div class="group"><div class="gh' + (g.bad ? " bad" : "") + '">' + (g.color ? '<span class="dot" style="background:' + esc(g.color) + '"></span>' : "") +
+        (g.avatar ? avatar(g.avatar) : "") + esc(g.title) + ' <span class="n">' + g.tasks.length + "</span>" +
+        (view === "done" ? ' <span class="n" style="margin-left:auto;text-transform:none">' + fmtMin(g.tasks.reduce(function (s, t) { return s + spentSec(t); }, 0) / 60) + " tracked</span>" : "") +
+        '</div><div class="card">' + g.tasks.map(rowHtml).join("") + "</div></div>";
+    });
+    if (!any) h += emptyHtml();
+    var q = $("quick"), keepVal = q ? q.value : "", focused = q && document.activeElement === q;
+    $("main").innerHTML = h;
+    var nq = $("quick");
+    if (nq && keepVal) { nq.value = keepVal; $("qhint").innerHTML = quickPreview(keepVal); }
+    if (nq && focused) nq.focus();
+  }
+  function statsHtml(list) {
+    var s = statsFor(list);
+    return '<div class="stats"><div class="stat"><b>' + s.open + '</b><span>Open</span></div>' +
+      '<div class="stat' + (s.overdue ? " bad" : "") + '"><b>' + s.overdue + '</b><span>Overdue</span></div>' +
+      '<div class="stat"><b>' + fmtMin(s.est) + '</b><span>Estimated, open</span></div>' +
+      '<div class="stat"><b>' + fmtMin(s.spent) + '</b><span>Time tracked</span></div>' +
+      '<div class="stat"><b>' + s.done + '</b><span>Done</span></div></div>';
+  }
+  function emptyHtml() {
+    if (query) return '<div class="empty"><b>No matches</b>Nothing here matches "' + esc(query) + '".</div>';
+    if (!state.tasks.length) return '<div class="empty"><b>Welcome 👋</b>Add your first task above, or open <a href="#" data-view="inbox">Suggestions</a> to scan your Outlook and Wispr Flow for action items.</div>';
+    var m = { today: ["Nothing due today", "Enjoy the calm, or pull something forward from Upcoming."], upcoming: ["Nothing scheduled", "Give tasks a due date to see them here."], all: ["All clear", "No open tasks."], waiting: ["Not waiting on anyone", "Set “Waiting on” in a task when it's blocked on a teammate."], done: ["Nothing done yet", "Completed tasks show up here."] };
+    var e = m[view] || ["Nothing here yet", "Add a task above."];
+    return '<div class="empty"><b>' + e[0] + "</b>" + e[1] + "</div>";
+  }
+
+  function renderInbox() {
+    $("vTitle").textContent = "Suggestions";
+    $("vSub").textContent = "Action items found in your Outlook and Wispr Flow";
+    var ib = state.inbox, h = "";
+    var last = [ib.lastScanMail, ib.lastScanFlow].filter(Boolean).sort().pop();
+    h += '<div class="scanbar"><div class="txt"><b>Scan Outlook &amp; Wispr Flow</b><span class="muted">' +
+      (last ? "Last scanned " + esc(new Date(last).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + ". The next scan only reads what's new." : "The first scan reads the last " + state.settings.firstDays + " days.") +
+      (state.settings.teamMailbox ? " Includes team mailbox " + esc(state.settings.teamMailbox) + "." : "") +
+      '</span></div><button class="btn" data-act="scanSettings">Scan settings</button><button class="btn pri" data-act="scan"' + (scanning ? " disabled" : "") + ">" +
+      (scanning ? '<span class="spin"></span> Scanning…' : "✦ Scan now") + "</button></div>";
+    var note = scanNote || ib.note;
+    if (note) h += '<div class="note' + (scanWarn ? " warn" : "") + '">' + esc(note) + "</div>";
+    if (!ib.items.length) {
+      h += '<div class="empty"><b>No suggestions waiting</b>Scan to find requests, deadlines and meeting next steps. Anything already on your list, or that you dismissed, won\'t be suggested again.</div>';
+    } else {
+      h += '<div class="group"><div class="gh">' + ib.items.length + ' to review<span style="margin-left:auto;display:flex;gap:6px;text-transform:none;letter-spacing:0">' +
+        '<button class="btn sm" data-act="dismissAll">Dismiss all</button><button class="btn sm pri" data-act="acceptAll">Add all</button></span></div><div class="card">';
+      ib.items.forEach(function (s) {
+        var chips = ['<span class="chip">' + esc(s.source) + (s.from ? " · " + esc(s.from) : "") + "</span>"];
+        if (s.owner && !isMe(s.owner)) chips.push('<span class="chip">' + avatar(s.owner) + esc(s.owner) + "</span>");
+        if (s.project) chips.push('<span class="chip"><span class="dot" style="background:' + esc((project(findProject(s.project)) || {}).color || "#999") + '"></span>' + esc(s.project) + (findProject(s.project) ? "" : " (new)") + "</span>");
+        if (s.due) chips.push('<span class="chip">📅 ' + esc(fmtDate(s.due)) + (s.time ? " · " + esc(fmtTime(s.time)) : "") + "</span>");
+        if (s.link) chips.push('<a class="chip" href="' + esc(s.link) + '" target="_blank" rel="noopener">Open source ↗</a>');
+        h += '<div class="sugg" data-sid="' + esc(s.id) + '"><div class="rb"><input value="' + esc(s.title) + '" data-sf="title" aria-label="Task title"><div class="meta">' + chips.join("") + "</div></div>" +
+          '<div class="acts"><button class="btn sm" data-act="dismiss">Dismiss</button><button class="btn sm pri" data-act="accept">Add</button></div></div>';
+      });
+      h += "</div></div>";
+    }
+    $("main").innerHTML = h;
+  }
+
+  function opt(v, label, cur) { return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? " selected" : "") + ">" + esc(label) + "</option>"; }
+  function peopleOpts(cur, withMe, noneLabel) {
+    var h = noneLabel ? opt("", noneLabel, cur) : "";
+    if (withMe) h += opt("me", "Me (" + meName() + ")", cur);
+    state.people.forEach(function (p) { h += opt(p.id, p.name, cur); });
+    return h + opt("__new", "+ New person…", "");
+  }
+  function renderDetail(force) {
+    var app = $("app"), d = $("detail"), t = openId && task(openId);
+    if (!t) { openId = null; app.classList.remove("with-detail"); d.innerHTML = ""; return; }
+    app.classList.add("with-detail");
+    if (!force && d.contains(document.activeElement) && d.dataset.id === t.id) { updateLive(); return; }
+    d.dataset.id = t.id;
+    var est = ESTIMATES.indexOf(t.estimate) < 0 ? ESTIMATES.concat([t.estimate]).sort(function (a, b) { return a - b; }) : ESTIMATES;
+    var sp = spentSec(t), pct = t.estimate ? Math.min(100, sp / 60 / t.estimate * 100) : 0;
+    var h = '<div class="dh"><button class="x" data-act="close" aria-label="Close">✕</button><span class="muted" style="flex:1">' +
+      (t.status === "done" ? "Completed " + esc(new Date(t.doneAt).toLocaleDateString()) : "Task") + '</span>' +
+      '<button class="btn sm" data-act="toggle">' + (t.status === "done" ? "Reopen" : "✓ Complete") + '</button><button class="btn sm danger" data-act="delete">Delete</button></div><div class="db">' +
+      '<textarea class="dtitle" data-f="title" rows="2">' + esc(t.title) + '</textarea><div class="grid">' +
+      '<label class="field">Status<select data-f="status">' + opt("todo", "To do", t.status) + opt("doing", "In progress", t.status) + opt("done", "Done", t.status) + "</select></label>" +
+      '<label class="field">Priority<select data-f="priority">' + opt("high", "High", t.priority) + opt("normal", "Normal", t.priority) + opt("low", "Low", t.priority) + "</select></label>" +
+      '<label class="field full">Project<select data-f="project">' + opt("", "No project", t.project) +
+      state.projects.map(function (p) { return opt(p.id, p.name, t.project); }).join("") + opt("__new", "+ New project…", "") + "</select></label>" +
+      '<label class="field">Owner<select data-f="owner">' + peopleOpts(t.owner, true) + "</select></label>" +
+      '<label class="field">Waiting on<select data-f="waiting">' + peopleOpts(t.waiting, false, "Nobody") + "</select></label>" +
+      '<label class="field">Due date<input type="date" data-f="due" value="' + esc(t.due || "") + '"></label>' +
+      '<label class="field">Time<input type="time" data-f="time" value="' + esc(t.time || "") + '"></label>' +
+      "</div>" +
+      '<div class="blk"><div class="lab">People involved</div><div class="tog">' +
+      state.people.filter(function (p) { return p.id !== t.owner; }).map(function (p) {
+        return '<button class="' + (t.people.indexOf(p.id) >= 0 ? "on" : "") + '" data-act="involve" data-pid="' + esc(p.id) + '">' + avatar(p.name) + esc(p.name) + "</button>";
+      }).join("") + '<button class="add" data-act="involveNew">+ Add person</button></div></div>' +
+      '<div class="blk"><div class="lab">Timing</div><div class="timebox">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div style="flex:1"><div class="big" data-live-d="' + esc(t.id) + '">' + fmtClock(sp) + '</div><div class="muted" style="font-size:12px">tracked' + (t.estimate ? " of " + fmtMin(t.estimate) + " estimated" : "") + "</div></div>" +
+      '<label class="field" style="width:130px">Estimate<select data-f="estimate">' + est.map(function (m) { return opt(m, m ? fmtMin(m) : "None", t.estimate); }).join("") + "</select></label></div>" +
+      (t.estimate ? '<div class="bar"><i class="' + (sp / 60 > t.estimate ? "over" : "") + '" style="width:' + pct.toFixed(1) + '%"></i></div>' : '<div style="height:10px"></div>') +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' + (t.status !== "done" ? '<button class="btn sm ' + (t.timerStart ? "danger" : "pri") + '" data-act="timer">' + (t.timerStart ? "■ Stop timer" : "▶ Start timer") + "</button>" : "") +
+      '<button class="btn sm" data-act="addTime" data-min="15">+15m</button><button class="btn sm" data-act="addTime" data-min="60">+1h</button><button class="btn sm ghost" data-act="resetTime">Reset</button></div></div></div>' +
+      '<div class="blk"><label class="field">Notes<textarea data-f="notes" placeholder="Context, links, next steps…">' + esc(t.notes || "") + "</textarea></label></div>";
+    if (t.source) {
+      h += '<div class="blk"><div class="lab">Found by scan</div><div class="src">' + esc(t.source.kind || "") + (t.source.from ? " · " + esc(t.source.from) : "") +
+        (t.source.link ? ' · <a href="' + esc(t.source.link) + '" target="_blank" rel="noopener">Open ↗</a>' : "") + "</div></div>";
+    }
+    h += '<div class="blk muted" style="font-size:12px">Created ' + esc(new Date(t.created).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + "</div></div>";
+    d.innerHTML = h;
+  }
+  function render(opts) {
+    renderNav(); renderMain();
+    if (!(opts && opts.keepDetail)) renderDetail(opts && opts.forceDetail);
+    updateLive();
+  }
+
+  /* ---------- Timers ---------- */
+  function startTimer(t) {
+    state.tasks.forEach(function (o) { if (o.timerStart && o.id !== t.id) stopTimer(o); });
+    t.timerStart = new Date().toISOString();
+    if (t.status === "todo") t.status = "doing";
+  }
+  function stopTimer(t) { if (!t.timerStart) return; t.spent = Math.round(spentSec(t)); t.timerStart = null; }
+  function updateLive() {
+    var run = state.tasks.filter(function (t) { return t.timerStart; })[0];
+    var pill = $("timerPill");
+    if (run) { pill.hidden = false; $("timerText").textContent = fmtClock(spentSec(run)) + " · " + run.title; pill.dataset.id = run.id; }
+    else pill.hidden = true;
+    document.querySelectorAll("[data-live],[data-live-d]").forEach(function (el) {
+      var t = task(el.getAttribute("data-live") || el.getAttribute("data-live-d")); if (!t) return;
+      el.textContent = (el.hasAttribute("data-live") ? "● " : "") + fmtClock(spentSec(t));
+    });
+  }
+  setInterval(function () { if (state.tasks.some(function (t) { return t.timerStart; })) updateLive(); }, 1000);
+
+  /* ---------- Saving: each person's tasks live in their own private document ---------- */
+  function stable(v) {
+    if (Array.isArray(v)) return "[" + v.map(stable).join(",") + "]";
+    if (v && typeof v === "object") return "{" + Object.keys(v).sort().map(function (k) { return JSON.stringify(k) + ":" + stable(v[k]); }).join(",") + "}";
+    return JSON.stringify(v);
+  }
+  function setSync(cls, text) { $("syncDot").className = "syncdot " + cls; $("syncText").textContent = text; }
+  function save() {
+    if (localMode) { var ok = lsSet(LS_KEY, state); setSync(ok ? "ok" : "warn", ok ? "Saved in this browser" : "Couldn't save in this browser"); return; }
+    if (canSave === false) return;
+    dirty = true;
+    if (!serverOk) { heldSince = heldSince || new Date().toISOString(); setSync("warn", "Connecting… changes will save once connected"); return; }
+    setSync("busy", "Saving…");
+    clearTimeout(saveTimer); saveTimer = setTimeout(flush, 300);
+  }
+  function changed(opts) { normalize(); render(opts); save(); }
+  function flush(retried) {
+    if (!dbRef) { if (canSave !== null) setSync("warn", "Not saved"); return; }
+    if (writing || !dirty) return;
+    dirty = false; writing = true;
+    dbRef.set(JSON.parse(JSON.stringify(state))).then(function () {
+      writing = false; if (dirty) flush(); else setSync("ok", "Saved · private to you");
+    }).catch(function (e) {
+      writing = false; dirty = true;
+      var c = e && e.code;
+      if (c === "unavailable" && !retried) { setTimeout(function () { flush(true); }, 800 + Math.random() * 800); return; }
+      if (c === "invalid_argument" || c === "revoked" || c === "not_granted" || c === "permission_denied") { canSave = false; setSync("warn", "Can't save here"); return; }
+      if (c === "quota_exceeded") { setSync("warn", "Storage full"); return; }
+      setSync("warn", "Couldn't save — retrying on next change");
+    });
+  }
+  function applyRemote(snap) {
+    if (snap.metadata && snap.metadata.hasPendingWrites) return;
+    if (writing || dirty) return;
+    var first = !loaded; loaded = true;
+    if (!snap.exists) { if (first) { normalize(); render(); } return; }
+    var incoming = JSON.parse(JSON.stringify(snap.data()));
+    if (!first && stable(incoming) === stable(state)) return;
+    state = incoming; normalize();
+    var detailBusy = $("detail").contains(document.activeElement);
+    render({ keepDetail: detailBusy });
+  }
+  /* Edits made before the server answered are added on top of the saved data, never written over it. */
+  function mergeHeld(snap) {
+    var local = state, since = bootAt; heldSince = null; loaded = true;
+    if (snap.exists) {
+      state = JSON.parse(JSON.stringify(snap.data())); normalize();
+      local.tasks.filter(function (t) { return t.created >= since; }).forEach(function (t) {
+        var lp = (local.projects || []).filter(function (p) { return p.id === t.project; })[0];
+        var nameOf = function (id) { var u = (local.people || []).filter(function (x) { return x.id === id; })[0]; return u ? u.name : ""; };
+        var c = JSON.parse(JSON.stringify(t)); c.id = newId("t");
+        c.project = lp ? findProject(lp.name, true) : "";
+        c.owner = t.owner === "me" || !nameOf(t.owner) ? "me" : findPerson(nameOf(t.owner), true);
+        c.waiting = nameOf(t.waiting) ? findPerson(nameOf(t.waiting), true) : "";
+        c.people = (t.people || []).map(nameOf).filter(Boolean).map(function (n) { return findPerson(n, true); });
+        state.tasks.push(c);
+      });
+    }
+    normalize(); render(); dirty = true; flush();
+  }
+  function goLocal(msg) {
+    localMode = true; canSave = true;
+    var saved = lsGet(LS_KEY, null);
+    if (saved && Array.isArray(saved.tasks)) state = saved;
+    loaded = true; normalize(); render(); setSync("ok", msg || "Saved in this browser");
+  }
+
+  /* ---------- Toast + undo ---------- */
+  function snapshot() { return JSON.stringify(state); }
+  function toast(msg, snap) {
+    undoSnap = snap || null;
+    $("toastUndo").style.display = snap ? "" : "none";
+    $("toastMsg").textContent = msg;
+    $("toast").classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").classList.remove("show"); undoSnap = null; }, 5000);
+  }
+  $("toastUndo").addEventListener("click", function () {
+    if (!undoSnap) return; state = JSON.parse(undoSnap); undoSnap = null;
+    $("toast").classList.remove("show"); changed({ forceDetail: true });
+  });
+
+  /* ---------- Modal ---------- */
+  var modalDone = null;
+  function closeModal(v) {
+    $("modal").classList.remove("show"); $("scrim").classList.remove("show");
+    var f = modalDone; modalDone = null; if (f) f(v);
+  }
+  function modal(title, body, buttons, onOpen) {
+    return new Promise(function (resolve) {
+      modalDone = resolve;
+      $("modal").innerHTML = "<h2>" + esc(title) + '</h2><div class="mb">' + body + '</div><div class="mf">' +
+        buttons.map(function (b) { return '<button class="btn ' + (b.cls || "") + '" data-mv="' + esc(b.v) + '">' + esc(b.label) + "</button>"; }).join("") + "</div>";
+      $("modal").classList.add("show"); $("scrim").classList.add("show");
+      var first = $("modal").querySelector("input,select,textarea"); if (first) first.focus();
+      if (onOpen) onOpen($("modal"));
+    });
+  }
+  $("modal").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-mv]"); if (!b) return;
+    var v = b.getAttribute("data-mv");
+    if (v === "ok") { var vals = {}; $("modal").querySelectorAll("[data-k]").forEach(function (el) { vals[el.getAttribute("data-k")] = el.type === "checkbox" ? el.checked : el.value; }); closeModal(vals); }
+    else closeModal(v === "cancel" ? null : v);
+  });
+  $("modal").addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.tagName === "INPUT") { e.preventDefault(); var ok = $("modal").querySelector('[data-mv="ok"]'); if (ok) ok.click(); } });
+  function inputField(k, label, value, ph, type, help) {
+    return '<label class="field">' + esc(label) + '<input data-k="' + k + '" type="' + (type || "text") + '" value="' + esc(value || "") + '" placeholder="' + esc(ph || "") + '">' + (help ? '<span class="help">' + help + "</span>" : "") + "</label>";
+  }
+  function swatchField(cur) {
+    return '<div class="field">Color<div class="swatches">' + COLORS.map(function (c) { return '<button type="button" data-color="' + c + '" class="' + (c === cur ? "on" : "") + '" style="background:' + c + '"></button>'; }).join("") +
+      '</div><input type="hidden" data-k="color" value="' + esc(cur) + '"></div>';
+  }
+  function wireSwatches(m) {
+    m.querySelectorAll("[data-color]").forEach(function (b) {
+      b.addEventListener("click", function () { m.querySelectorAll("[data-color]").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); m.querySelector('[data-k="color"]').value = b.getAttribute("data-color"); });
+    });
+  }
+  var OKC = [{ v: "cancel", label: "Cancel" }, { v: "ok", label: "Save", cls: "pri" }];
+  function askProject(p) {
+    var isNew = !p; p = p || { name: "", color: COLORS[state.projects.length % COLORS.length] };
+    var btns = isNew ? OKC : [{ v: "delete", label: "Delete project", cls: "danger" }].concat(OKC);
+    return modal(isNew ? "New project" : "Edit project", inputField("name", "Name", p.name, "e.g. Q1 launch") + swatchField(p.color), btns, wireSwatches).then(function (v) {
+      if (v === "delete") {
+        var snap = snapshot();
+        state.tasks.forEach(function (t) { if (t.project === p.id) t.project = ""; });
+        state.projects = state.projects.filter(function (x) { return x.id !== p.id; });
+        view = "all"; changed(); toast("Project deleted. Its tasks were kept.", snap); return "";
+      }
+      if (!v || !v.name.trim()) return "";
+      if (isNew) { var id = findProject(v.name, true); project(id).color = v.color; return id; }
+      p.name = v.name.trim().slice(0, 60); p.color = v.color; return p.id;
+    });
+  }
+  function askPerson(u) {
+    var isNew = !u; u = u || { name: "", email: "" };
+    var btns = isNew ? OKC : [{ v: "delete", label: "Remove person", cls: "danger" }].concat(OKC);
+    return modal(isNew ? "Add person" : "Edit person", inputField("name", "Name", u.name, "e.g. Sam Lee") +
+      inputField("email", "Email (optional)", u.email, "sam@company.com", "email", "Used to recognize them in scanned email and meetings."), btns).then(function (v) {
+      if (v === "delete") {
+        var snap = snapshot();
+        state.tasks.forEach(function (t) { if (t.owner === u.id) t.owner = "me"; if (t.waiting === u.id) t.waiting = ""; });
+        state.people = state.people.filter(function (x) { return x.id !== u.id; });
+        view = "today"; changed(); toast(u.name + " removed. Their tasks moved to you.", snap); return "";
+      }
+      if (!v || !v.name.trim()) return "";
+      if (isNew) {
+        var ex = findPerson(v.name, false);
+        if (ex && ex !== "me") { person(ex).email = v.email || person(ex).email; return ex; }
+        var p = { id: newId("u"), name: v.name.trim().slice(0, 60), email: v.email.trim() }; state.people.push(p); return p.id;
+      }
+      u.name = v.name.trim().slice(0, 60); u.email = v.email.trim(); return u.id;
+    });
+  }
+  function settingsModal() {
+    var s = state.settings;
+    var body = inputField("me", "Your name (as it appears in emails and meeting notes)", s.me || profileName, "Your full name") +
+      inputField("teamMailbox", "Team or shared mailbox to also scan (optional)", s.teamMailbox, "team@company.com", "email", "You need access to this mailbox in Outlook. Leave empty to scan only your own mail.") +
+      '<label class="field check"><input type="checkbox" data-k="includeShared"' + (s.includeShared ? " checked" : "") + '><span>Include meetings teammates shared with me in Wispr Flow</span></label>' +
+      '<label class="field check"><input type="checkbox" data-k="forTeam"' + (s.forTeam ? " checked" : "") + '><span>Also suggest tasks owned by people on my People list<br><span class="help">Off: only suggest things you need to do.</span></span></label>' +
+      inputField("firstDays", "First scan looks back (days)", s.firstDays, "7", "number") +
+      '<div class="field">Scan memory<span class="help">' + state.inbox.seen.length + " messages and meetings already read · " + state.inbox.dismissed.length + ' dismissed suggestions</span>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button type="button" class="btn sm" data-mv="resetSeen">Re-read recent messages</button><button type="button" class="btn sm" data-mv="resetDismissed">Forget dismissed</button></div></div>' +
+      '<div class="field">Your data<span class="help">Back up or move your tasks.</span><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button type="button" class="btn sm" data-mv="export">Export JSON</button><button type="button" class="btn sm" data-mv="csv">Export CSV</button><button type="button" class="btn sm" data-mv="import">Import JSON</button></div></div>';
+    modal("Settings", body, OKC).then(function (v) {
+      if (v === "resetSeen") { state.inbox.seen = []; state.inbox.lastScanMail = state.inbox.lastScanFlow = null; changed(); toast("The next scan will re-read the last " + s.firstDays + " days. Tasks you already have still won't be suggested."); return; }
+      if (v === "resetDismissed") { state.inbox.dismissed = []; changed(); toast("Dismissed suggestions forgotten."); return; }
+      if (v === "export") return download("tasks.json", JSON.stringify(state, null, 2), "application/json");
+      if (v === "csv") return download("tasks.csv", toCsv(), "text/csv");
+      if (v === "import") return importJson();
+      if (!v) return;
+      s.me = v.me.trim(); s.teamMailbox = v.teamMailbox.trim(); s.includeShared = !!v.includeShared; s.forTeam = !!v.forTeam;
+      s.firstDays = Math.max(1, Math.min(30, parseInt(v.firstDays, 10) || 7));
+      changed();
+    });
+  }
+  function scanSettings() { settingsModal(); }
+  function download(name, text, type) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function toCsv() {
+    var rows = [["Title", "Status", "Priority", "Project", "Owner", "Waiting on", "People", "Due", "Time", "Estimate (min)", "Tracked (min)", "Created", "Done", "Notes"]];
+    state.tasks.forEach(function (t) {
+      rows.push([t.title, t.status, t.priority, (project(t.project) || {}).name || "", personName(t.owner), personName(t.waiting), t.people.map(personName).join("; "), t.due || "", t.time || "", t.estimate || "", Math.round(spentSec(t) / 60), t.created, t.doneAt || "", t.notes || ""]);
+    });
+    return rows.map(function (r) { return r.map(function (c) { c = String(c == null ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n");
+  }
+  function importJson() {
+    var inp = document.createElement("input"); inp.type = "file"; inp.accept = "application/json,.json";
+    inp.onchange = function () {
+      var f = inp.files[0]; if (!f) return;
+      f.text().then(function (txt) {
+        var o = JSON.parse(txt); if (!o || !Array.isArray(o.tasks)) throw new Error("bad");
+        var snap = snapshot(); state = o; openId = null; changed(); toast("Imported " + o.tasks.length + " tasks.", snap);
+      }).catch(function () { toast("That file isn't a task export."); });
+    };
+    inp.click();
+  }
+
+  /* ---------- Scanning: the viewer's own Outlook + Wispr Flow, through their own connectors ---------- */
+  function parseMulti(text) {
+    try { var o = JSON.parse(text); return Array.isArray(o) ? o : [o]; } catch (e) {}
+    var out = [], depth = 0, inStr = false, bs = false, start = -1;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inStr) { if (bs) bs = false; else if (c === "\\") bs = true; else if (c === '"') inStr = false; continue; }
+      if (c === '"') { inStr = true; continue; }
+      if (c === "{") { if (depth === 0) start = i; depth++; }
+      else if (c === "}" && depth > 0) { depth--; if (depth === 0 && start >= 0) { try { out.push(JSON.parse(text.slice(start, i + 1))); } catch (e) {} start = -1; } }
+    }
+    return out;
+  }
+  function objsOf(res) {
+    var objs = [];
+    ((res && res.content) || []).forEach(function (b) { if (b && b.type === "text" && b.text) objs = objs.concat(parseMulti(b.text)); });
+    var p = res && res.payload;
+    if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) { p = null; } }
+    if (!objs.length && p) objs = Array.isArray(p) ? p : (p.value || p.messages || p.results || [p]);
+    return objs;
+  }
+  function call(mcp, server, tool, input) {
+    return mcp.callTool(server, tool, input, { cache: false }).catch(function (e) {
+      if (e && e.retryable) return new Promise(function (r) { setTimeout(r, (e.retryAfterMs || 1500) + Math.random() * 800); })
+        .then(function () { return mcp.callTool(server, tool, input, { cache: false }); });
+      throw e;
+    });
+  }
+  function fetchMail(mcp, input, pages) {
+    var all = [];
+    function page(offset, n) {
+      var inp = Object.assign({}, input); if (offset) inp.offset = offset;
+      return call(mcp, M365, "outlook_email_search", inp).then(function (res) {
+        var msgs = [], next = null;
+        objsOf(res).forEach(function (o) { if (!o || typeof o !== "object") return; if (o.nextOffset != null) next = o.nextOffset; if (o.subject !== undefined || o.summary !== undefined) msgs.push(o); });
+        all = all.concat(msgs);
+        return next != null && msgs.length && n + 1 < pages ? page(next, n + 1) : all;
+      });
+    }
+    return page(0, 0);
+  }
+  function flowCall(mcp, tool, input) {
+    return call(mcp, FLOW, tool, input).then(function (r) {
+      var p = r && r.payload;
+      if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) { p = null; } }
+      if (!p || typeof p !== "object") p = objsOf(r)[0] || {};
+      return p;
+    });
+  }
+  function nextSteps(sum) {
+    var i = sum.search(/#+\s*(Next Steps|Action Items|Follow[- ]?ups?|To-?dos?)/i);
+    if (i < 0) return sum.slice(0, 1400);
+    var rest = sum.slice(i), j = rest.slice(3).search(/\n#+\s/);
+    return (j < 0 ? rest : rest.slice(0, j + 3)).slice(0, 1800);
+  }
+  function fetchFlow(mcp, since, includeShared, seen) {
+    var out = [];
+    return Promise.allSettled([
+      flowCall(mcp, "search_meetings", { since: since, limit: 20 }),
+      flowCall(mcp, "search_scratchpad_notes", { since: since, limit: 15 })
+    ]).then(function (r) {
+      if (r[0].status === "rejected" && r[1].status === "rejected") throw r[0].reason;
+      var meets = r[0].status === "fulfilled" ? (r[0].value.meetings || []) : [];
+      var notes = r[1].status === "fulfilled" ? (r[1].value.notes || []) : [];
+      notes.forEach(function (n) {
+        var k = "n:" + (n.id || n.title) + ":" + (n.modified_at || "");
+        if (seen.has(k)) return;
+        out.push({ key: k, source: "Wispr note", from: n.title || "Note", subject: "", text: n.content_excerpt || n.content || "", link: "" });
+      });
+      meets = meets.filter(function (m) {
+        if (m.shared && !includeShared) return false;
+        return !seen.has("w:" + m.id + ":" + (m.modified_at || ""));
+      }).slice(0, 8);
+      return Promise.all(meets.map(function (mt) {
+        var owner = mt.owner && (mt.owner.name || mt.owner.display_name || mt.owner.email);
+        var folders = (mt.folders || []).map(function (f) { return f.name; }).filter(Boolean).join(", ");
+        return flowCall(mcp, "get_meeting", { meeting_id: mt.id, view_content: { char_limit: 1 } })
+          .then(function (full) { return nextSteps((full && full.summary) || mt.content_excerpt || ""); }, function () { return mt.content_excerpt || ""; })
+          .then(function (txt) {
+            out.push({ key: "w:" + mt.id + ":" + (mt.modified_at || ""), source: mt.shared ? "Shared meeting" : "Meeting", from: (mt.title || "Meeting") + (owner && mt.shared ? " (shared by " + owner + ")" : ""),
+              subject: folders ? "folder: " + folders : "", text: txt, link: mt.share_link || "" });
+          });
+      })).then(function () { return out; });
+    });
+  }
+  function mcpMessage(e, name) {
+    name = (e && e.server) || name;
+    var c = e && e.code;
+    if (c === "needs_reauth") return name + " needs reconnecting: claude.ai → Settings → Connectors.";
+    if (c === "server_not_connected" || c === "server_not_found") return "Add the " + name + " connector in claude.ai → Settings → Connectors.";
+    if (c === "selection_required") return "Choose which " + name + " connector this page should use, then scan again.";
+    if (c === "not_in_manifest" || c === "approval_required" || c === "consent_required") return "This page needs your OK to read " + name + ". Press Scan now and allow it.";
+    if (c === "blocked_by_policy") return "Your organization blocks this " + name + " tool here.";
+    if (c === "not_granted" || c === "capability_disabled" || c === "capability_removed") return "Scanning only works when this page is opened in Claude.";
+    if (c === "server_unavailable" || c === "rate_limited") return name + " didn't answer. Try again in a minute.";
+    return "Couldn't read " + name + (e && e.message ? ": " + e.message : ".");
+  }
+  var AUTOMATED = /(no-?reply|do-?not-?reply|notifications?@|mailer-daemon|postmaster|calendar-notification|newsletter|marketing|digest@)/i;
+
+  /* Duplicate check: is this suggestion already a task, already suggested, or dismissed before? */
+  var STOP = "a an the to of for and or on in at by with from re fw fwd about into is be please pls up our my your their this that".split(" ");
+  function tokens(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(function (w) { return w && STOP.indexOf(w) < 0; })
+      .map(function (w) { return w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w; });
+  }
+  function similar(a, b) {
+    var A = tokens(a), B = tokens(b); if (!A.length || !B.length) return 0;
+    var sa = {}, sb = {}, inter = 0;
+    A.forEach(function (w) { sa[w] = 1; }); B.forEach(function (w) { sb[w] = 1; });
+    var ka = Object.keys(sa), kb = Object.keys(sb);
+    ka.forEach(function (w) { if (sb[w]) inter++; });
+    var jac = inter / (ka.length + kb.length - inter), small = Math.min(ka.length, kb.length);
+    return Math.max(jac, small >= 3 ? inter / small * 0.85 : 0);
+  }
+  function isDuplicate(title, link) {
+    var i, th = 0.6;
+    for (i = 0; i < state.tasks.length; i++) {
+      var t = state.tasks[i];
+      if (similar(title, t.title) >= th) return true;
+      if (link && t.source && t.source.link === link && similar(title, t.title) >= 0.35) return true;
+    }
+    for (i = 0; i < state.inbox.items.length; i++) if (similar(title, state.inbox.items[i].title) >= th) return true;
+    for (i = 0; i < state.inbox.dismissed.length; i++) if (similar(title, state.inbox.dismissed[i]) >= th) return true;
+    return false;
+  }
+
+  function scan() {
+    if (scanning) return;
+    var use = window.claude && window.claude.use;
+    if (localMode || !use) { scanWarn = true; scanNote = "Scanning needs this page to be opened in Claude, where it can use your Microsoft 365 and Wispr Flow connectors. Opened as a plain file, it can only keep tasks."; render(); return; }
+    scanning = true; scanWarn = false; scanNote = "Reading Outlook and Wispr Flow…"; render();
+    var st = state.settings, ib = state.inbox, started = new Date().toISOString();
+    var first = new Date(Date.now() - st.firstDays * 864e5).toISOString();
+    var sinceMail = ib.lastScanMail || first, sinceFlow = ib.lastScanFlow || first;
+    var seen = new Set(ib.seen), newKeys = [], mcp, sample;
+    Promise.all([use("mcp"), use("sample")]).then(function (r) {
+      mcp = r[0]; sample = r[1];
+      if (!mcp || !sample) throw { code: "not_granted" };
+      return Promise.allSettled([
+        fetchMail(mcp, { query: "*", afterDateTime: sinceMail, limit: 25 }, 3),
+        st.teamMailbox ? fetchMail(mcp, { query: "*", afterDateTime: sinceMail, limit: 25, mailboxOwnerEmail: st.teamMailbox }, 2) : Promise.resolve([]),
+        fetchFlow(mcp, sinceFlow, st.includeShared, seen)
+      ]);
+    }).then(function (res) {
+      var items = [], fails = [], counts = [0, 0, 0], skipped = 0;
+      var names = ["your Outlook", "the team mailbox", "Wispr Flow"], servers = [M365, M365, FLOW];
+      [0, 1].forEach(function (i) {
+        if (res[i].status !== "fulfilled") return;
+        res[i].value.forEach(function (m) {
+          var k = "m:" + (m.internetMessageId || m.id || m.webLink);
+          if (seen.has(k)) { skipped++; return; }
+          seen.add(k); newKeys.push(k);
+          if (AUTOMATED.test(m.sender || "")) return;
+          counts[i]++;
+          items.push({ key: k, source: i ? "Team mailbox" : "Email", from: m.senderName || m.sender || "", subject: m.subject || "", text: m.summary || "", link: m.webLink || "" });
+        });
+      });
+      if (res[2].status === "fulfilled") res[2].value.forEach(function (m) { counts[2]++; newKeys.push(m.key); items.push(m); });
+      res.forEach(function (x, i) { if (x.status !== "fulfilled") fails.push(i); });
+      if (fails.length === 3 || (fails.length === 2 && !st.teamMailbox && fails.indexOf(1) < 0)) throw res[fails[0]].reason;
+      var partial = fails.map(function (i) { return " Couldn't read " + names[i] + ": " + mcpMessage(res[i].reason, servers[i]); }).join("");
+      var read = "Read " + counts[0] + " new email" + (counts[0] === 1 ? "" : "s") + (st.teamMailbox ? ", " + counts[1] + " from the team mailbox" : "") +
+        " and " + counts[2] + " Wispr Flow item" + (counts[2] === 1 ? "" : "s") + (skipped ? " (" + skipped + " already read before)" : "") + ". ";
+      var meta = { partial: partial, read: read, mailOk: res[0].status === "fulfilled", flowOk: res[2].status === "fulfilled" };
+      if (!items.length) return Object.assign(meta, { found: [], items: items });
+      items = items.slice(0, 80);
+      var team = state.people.map(function (p) { return p.name + (p.email ? " <" + p.email + ">" : ""); });
+      var existing = state.tasks.slice().sort(function (a, b) { return a.created < b.created ? 1 : -1; }).slice(0, 250)
+        .map(function (t) { return "- " + t.title + (t.status === "done" ? " (done)" : ""); }).join("\n");
+      var pending = ib.items.map(function (s) { return "- " + s.title; }).join("\n");
+      var dismissed = ib.dismissed.slice(-120).map(function (s) { return "- " + s; }).join("\n");
+      var list = items.map(function (m, i) {
+        var isMeet = /meeting/i.test(m.source);
+        return "[" + i + "] " + m.source + (isMeet ? ": " : " from ") + (m.from || "unknown") + (m.subject ? " | " + (isMeet ? "" : "subject: ") + m.subject : "") + " | " +
+          String(m.text || "").replace(/\s+/g, " ").slice(0, isMeet ? 1800 : 350);
+      }).join("\n");
+      var D = new Date();
+      var prompt = "Today is " + today() + " (" + D.toLocaleDateString("en-US", { weekday: "long" }) + "). You turn work messages into to-do items for " + meName() + ".\n" +
+        "Sources: Outlook email (their mailbox" + (st.teamMailbox ? " and a shared team mailbox" : "") + "), Wispr Flow meeting notes (some shared by teammates) and their own Wispr notes.\n" +
+        "Pick out ONLY concrete action items: direct requests, deadlines, deliverables, follow-ups owed, decisions that need action.\n" +
+        (st.forTeam
+          ? "Include items owned by " + meName() + " (owner \"me\") and items owned by these teammates (owner = their name exactly as written): " + (team.length ? team.join("; ") : "(none listed yet: use the person's name as written in the source)") + ". Skip items owned by anyone else.\n"
+          : "Include ONLY items that " + meName() + " must do; owner is always \"me\".\n") +
+        "Meeting next steps name owners in parentheses; use those. A team item with no named owner belongs to \"me\".\n" +
+        "Ignore newsletters, marketing, automated notifications, survey/system alerts, FYIs and anything that needs no action.\n" +
+        "Do NOT suggest anything already covered by an existing task, a pending suggestion or a dismissed item below, even if worded differently. Merge duplicates across sources into one.\n" +
+        "Projects in use: " + (state.projects.map(function (p) { return p.name; }).join("; ") || "(none)") + ". Use one of these names when the item clearly belongs to it; otherwise a short project name from the meeting folder or email subject, or \"\".\n\n" +
+        "Existing tasks:\n" + (existing || "(none)") + "\n\nPending suggestions:\n" + (pending || "(none)") + "\n\nDismissed (never suggest again):\n" + (dismissed || "(none)") + "\n\nSource items:\n" + list + "\n\n" +
+        'Reply with JSON only: an array (at most 15) of {"title": short imperative task, max 80 characters, "ref": index of the main source item, "owner": "me" or the teammate\'s name, "project": project name or "", "due": "YYYY-MM-DD" or "", "time": "HH:MM" (24h) or ""}. Reply [] if there are none.';
+      return sample.json(prompt).catch(function (e) { throw { sample: true, code: e && e.code, message: e && e.message }; })
+        .then(function (v) { return Object.assign(meta, { found: Array.isArray(v) ? v : (v && (v.items || v.tasks)) || [], items: items }); });
+    }).then(function (r) {
+      var added = 0, dup = 0;
+      r.found.forEach(function (f) {
+        if (!f || !f.title) return;
+        var title = String(f.title).trim().slice(0, 140), m = r.items[f.ref] || {};
+        var owner = String(f.owner || "me").trim();
+        if (!st.forTeam && !isMe(owner)) return;
+        if (isDuplicate(title, m.link)) { dup++; return; }
+        ib.items.push({
+          id: newId("s"), title: title, owner: isMe(owner) ? "" : owner, project: String(f.project || "").slice(0, 60),
+          due: /^\d{4}-\d{2}-\d{2}$/.test(f.due || "") ? f.due : "", time: /^\d{2}:\d{2}$/.test(f.time || "") ? f.time : "",
+          source: m.source || "Scan", from: m.from || "", link: m.link || "", at: started
+        });
+        added++;
+      });
+      ib.seen = ib.seen.concat(newKeys);
+      if (r.mailOk) ib.lastScanMail = started;
+      if (r.flowOk) ib.lastScanFlow = started;
+      scanNote = r.read + (added ? added + " new suggestion" + (added === 1 ? "" : "s") + "." : "Nothing new to add.") + (dup ? " Skipped " + dup + " already on your list." : "") + r.partial;
+      ib.note = scanNote; scanWarn = !!r.partial; scanning = false;
+      changed();
+    }).catch(function (e) {
+      scanning = false; scanWarn = true;
+      scanNote = e && e.sample
+        ? (e.code === "rate_limited" ? "Claude is busy right now. Try again in a few minutes." : e.code === "not_granted" ? "This page needs your OK to ask Claude. Press Scan now and allow it." : "Claude couldn't sort the messages" + (e.message ? ": " + e.message : "."))
+        : mcpMessage(e, M365);
+      render();
+    });
+  }
+  function acceptSuggestion(s) {
+    var t = {
+      id: newId("t"), title: s.title, notes: "", status: "todo", priority: "normal",
+      project: s.project ? findProject(s.project, true) : "", owner: s.owner ? findPerson(s.owner, true) : "me",
+      waiting: "", people: [], due: s.due || "", time: s.time || "", estimate: 0, spent: 0, timerStart: null,
+      created: new Date().toISOString(), doneAt: null, source: { kind: s.source, from: s.from, link: s.link }
+    };
+    state.tasks.push(t);
+    state.inbox.items = state.inbox.items.filter(function (x) { return x.id !== s.id; });
+    return t;
+  }
+  function dismissSuggestion(s) {
+    state.inbox.dismissed.push(s.title);
+    state.inbox.items = state.inbox.items.filter(function (x) { return x.id !== s.id; });
+  }
+
+  /* ---------- Events ---------- */
+  function setView(v) { view = v; query = ""; $("search").value = ""; $("app").classList.remove("nav-open"); $("scrim").classList.remove("show"); render(); document.querySelector(".scroll").scrollTop = 0; }
+  function toggleDone(t) {
+    var snap = snapshot();
+    if (t.status === "done") { t.status = "todo"; t.doneAt = null; }
+    else { stopTimer(t); t.status = "done"; t.doneAt = new Date().toISOString(); toast("Completed: " + t.title, snap); }
+    changed({ forceDetail: true });
+  }
+  document.addEventListener("click", function (e) {
+    var v = e.target.closest("[data-view]");
+    if (v) { e.preventDefault(); setView(v.getAttribute("data-view")); return; }
+    var a = e.target.closest("[data-act]"), row = e.target.closest(".row"), sg = e.target.closest(".sugg");
+    var act = a && a.getAttribute("data-act");
+    var t = row ? task(row.getAttribute("data-id")) : (e.target.closest("#detail") ? task(openId) : null);
+    if (act === "toggle" && t) { toggleDone(t); return; }
+    if (act === "timer" && t) { if (t.timerStart) stopTimer(t); else startTimer(t); changed({ forceDetail: true }); return; }
+    if (act === "close") { openId = null; render(); return; }
+    if (act === "delete" && t) { var snap = snapshot(); state.tasks = state.tasks.filter(function (x) { return x.id !== t.id; }); openId = null; changed(); toast("Task deleted.", snap); return; }
+    if (act === "addTime" && t) { t.spent = (t.spent || 0) + (+a.getAttribute("data-min")) * 60; changed({ forceDetail: true }); return; }
+    if (act === "resetTime" && t) { var sn = snapshot(); t.spent = 0; t.timerStart = null; changed({ forceDetail: true }); toast("Tracked time reset.", sn); return; }
+    if (act === "involve" && t) { var pid = a.getAttribute("data-pid"), i = t.people.indexOf(pid); if (i >= 0) t.people.splice(i, 1); else t.people.push(pid); changed({ forceDetail: true }); return; }
+    if (act === "involveNew" && t) { askPerson().then(function (id) { if (id && id !== "me" && t.people.indexOf(id) < 0) t.people.push(id); changed({ forceDetail: true }); }); return; }
+    if (act === "newProject") { askProject().then(function (id) { if (id) { changed(); setView("project:" + id); } }); return; }
+    if (act === "newPerson") { askPerson().then(function (id) { if (id) { changed(); setView("person:" + id); } }); return; }
+    if (act === "editProject") { var p = project(view.slice(8)); if (p) askProject(p).then(function (id) { if (id) changed(); }); return; }
+    if (act === "editPerson") { var u = person(view.slice(7)); if (u) askPerson(u).then(function (id) { if (id) changed(); }); return; }
+    if (act === "scan") { scan(); return; }
+    if (act === "scanSettings") { scanSettings(); return; }
+    if (sg) {
+      var s = state.inbox.items.filter(function (x) { return x.id === sg.getAttribute("data-sid"); })[0];
+      if (s && act === "accept") { var nt = acceptSuggestion(s); changed(); toast("Added: " + nt.title); return; }
+      if (s && act === "dismiss") { dismissSuggestion(s); changed(); return; }
+    }
+    if (act === "acceptAll") { var n = state.inbox.items.length, sa = snapshot(); state.inbox.items.slice().forEach(acceptSuggestion); changed(); toast("Added " + n + " tasks.", sa); return; }
+    if (act === "dismissAll") { var sd = snapshot(); state.inbox.items.slice().forEach(dismissSuggestion); changed(); toast("Dismissed. They won't be suggested again.", sd); return; }
+    if (row && !a) { openId = row.getAttribute("data-id"); render({ forceDetail: true }); return; }
+  });
+  document.addEventListener("input", function (e) {
+    var el = e.target;
+    if (el.id === "quick") { $("qhint").innerHTML = quickPreview(el.value); return; }
+    if (el.id === "search") { query = el.value.trim(); renderMain(); return; }
+    var sg = el.closest(".sugg");
+    if (sg && el.getAttribute("data-sf") === "title") {
+      var s = state.inbox.items.filter(function (x) { return x.id === sg.getAttribute("data-sid"); })[0];
+      if (s) { s.title = el.value.slice(0, 140); save(); }
+      return;
+    }
+    if (el.closest("#detail") && (el.getAttribute("data-f") === "title" || el.getAttribute("data-f") === "notes")) {
+      var t = task(openId); if (!t) return;
+      t[el.getAttribute("data-f")] = el.getAttribute("data-f") === "title" ? el.value.replace(/\n/g, " ").slice(0, 200) : el.value.slice(0, 5000);
+      renderNav(); renderMain(); save();
+    }
+  });
+  document.addEventListener("change", function (e) {
+    var el = e.target, f = el.getAttribute("data-f"); if (!f || !el.closest("#detail")) return;
+    var t = task(openId); if (!t || f === "title" || f === "notes") return;
+    var v = el.value;
+    if (v === "__new") {
+      (f === "project" ? askProject() : askPerson()).then(function (id) {
+        if (id) { if (f === "project") t.project = id; else if (f === "owner") t.owner = id; else if (id !== "me") t.waiting = id; }
+        changed({ forceDetail: true });
+      });
+      return;
+    }
+    if (f === "status") {
+      if (v === "done" && t.status !== "done") { stopTimer(t); t.doneAt = new Date().toISOString(); }
+      t.status = v;
+    } else if (f === "estimate") t.estimate = +v || 0;
+    else t[f] = v;
+    if (f === "time" && v && !t.due) t.due = today();
+    if (f === "owner") t.people = t.people.filter(function (id) { return id !== v; });
+    changed({ forceDetail: true });
+  });
+  document.addEventListener("keydown", function (e) {
+    var el = e.target;
+    if (el.id === "quick" && e.key === "Enter") {
+      var t = addQuick(el.value);
+      if (t) { el.value = ""; changed(); toast("Added: " + t.title); var q = $("quick"); if (q) { q.focus(); $("qhint").innerHTML = quickPreview(""); } }
+      return;
+    }
+    if (e.key === "Escape") {
+      if ($("modal").classList.contains("show")) { closeModal(null); return; }
+      if (openId) { openId = null; render(); return; }
+      if ($("app").classList.contains("nav-open")) { $("app").classList.remove("nav-open"); $("scrim").classList.remove("show"); }
+      return;
+    }
+    if (/INPUT|TEXTAREA|SELECT/.test(el.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "/") { e.preventDefault(); $("search").focus(); }
+    else if (e.key === "n" || e.key === "N") { var q = $("quick"); if (q) { e.preventDefault(); q.focus(); } }
+  });
+  $("btnMenu").addEventListener("click", function () { $("app").classList.add("nav-open"); $("scrim").classList.add("show"); });
+  $("scrim").addEventListener("click", function () {
+    if ($("modal").classList.contains("show")) { closeModal(null); return; }
+    $("app").classList.remove("nav-open"); $("scrim").classList.remove("show");
+  });
+  $("btnSettings").addEventListener("click", settingsModal);
+  $("timerPill").addEventListener("click", function () { var t = task(this.dataset.id); if (t) { stopTimer(t); changed({ forceDetail: true }); } });
+
+  /* ---------- Start ---------- */
+  normalize(); render(); setSync("busy", "Loading…");
+  var tries = 0;
+  (function connect() {
+    if (!(window.claude && window.claude.use)) {
+      if (++tries < 8) return setTimeout(connect, 250);
+      return goLocal("Saved in this browser");
+    }
+    Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function (r) {
+      var db = r[0], user = r[1];
+      if (!db || !user) return goLocal("Saved in this browser only");
+      return Promise.resolve(user.id()).then(function (id) {
+        if (!id) return goLocal("Saved in this browser only");
+        if (user.me) Promise.resolve(user.me()).then(function (p) { profileName = (p && (p.name || p.displayName || p.display_name)) || ""; if (loaded) render({ keepDetail: true }); }).catch(function () {});
+        dbRef = db.doc("data/users/" + id + "/state"); canSave = true;
+        var timer = setTimeout(function () { if (!loaded) { loaded = true; normalize(); render(); setSync("warn", "Still connecting…"); } }, 10000);
+        dbRef.onSnapshot(function (snap) {
+          if (!snap.metadata || !snap.metadata.fromCache) {
+            clearTimeout(timer);
+            if (!serverOk) { serverOk = true; if (heldSince) { mergeHeld(snap); return; } }
+          }
+          applyRemote(snap); if (!dirty && !writing) setSync("ok", "Synced · private to you");
+        }, function () { clearTimeout(timer); if (!loaded) { loaded = true; normalize(); render(); } setSync("warn", "Offline — reopen the page"); });
+      });
+    }).catch(function () { goLocal("Saved in this browser only"); });
+  })();
+})();
+</script>
+</body>
+</html>

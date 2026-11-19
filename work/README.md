@@ -47,7 +47,11 @@ Example: `Send pricing deck #launch @sam fri 3pm ~45m !high`
 ## Two ways to run it
 
 ### 1. In Claude (recommended, needed for scanning)
-Open the page as a Claude artifact. Each person needs:
+Open the page as a Claude artifact. There are two ways to get one:
+- Ask whoever set it up to share their artifact link with you. You get your own empty list.
+- Or make your own copy: download `index.html`, attach it in a Claude chat, and ask Claude to publish it as an artifact.
+
+Each person also needs:
 - The **Microsoft 365** connector, for Outlook.
 - The **Wispr Flow** connector, for meetings and notes.
 

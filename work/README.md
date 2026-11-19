@@ -14,6 +14,8 @@ Everything is in `index.html`. There is nothing to install.
   - a **timer** you start and stop, which adds up the time spent. While it runs, a pill at the top shows the time: tap it to open the task, or tap the stop button
   - views show estimated and logged time
 - **Views:** Today, Upcoming, All open tasks, Waiting on, Done, plus one view per project and per person.
+- **My list:** a small personal list, separate from work tasks. Items sit in **Now**, **Next** or **Later**. Tap an item to edit it, tick it off, or move it with one tap. Clear the Done pile when you like.
+- **Light and dark:** the moon/sun button at the bottom of the sidebar switches modes. Settings › Appearance can also match your device.
 - **Status:** a segmented control in the task details sets To do, In progress or Done.
 - **Suggestions:** scan Outlook and Wispr Flow for action items. Add or dismiss each one, or all at once. Adding or dismissing a single suggestion shows **Undo**.
 - **Works on any screen:**

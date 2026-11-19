@@ -63,7 +63,7 @@
   .nav.on { background: var(--accent); color: #fff; font-weight: 600; }
   .nav.on .cnt, .nav.on .ic { color: #fff; }
   .nav .ic { width: 22px; display: grid; place-items: center; color: var(--accent); font-size: 18px; flex: none; }
-  .nav .ic.red { color: var(--danger); } .nav .ic.orange { color: var(--orange); } .nav .ic.green { color: var(--ok); } .nav .ic.purple { color: #af52de; } .nav .ic.gray { color: var(--muted); }
+  .nav .ic.teal { color: #30b0c7; } .nav .ic.red { color: var(--danger); } .nav .ic.orange { color: var(--orange); } .nav .ic.green { color: var(--ok); } .nav .ic.purple { color: #af52de; } .nav .ic.gray { color: var(--muted); }
   .nav .lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav .cnt { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .nav .cnt.hot { background: var(--danger); color: #fff; border-radius: 10px; padding: 0 7px; font-weight: 600; min-width: 20px; text-align: center; }
@@ -115,6 +115,18 @@
   .stat span { font-size: 13px; color: var(--muted); font-weight: 500; }
   .stat.bad b { color: var(--danger); }
   .group { margin-bottom: 22px; }
+  .prow { align-items: center; cursor: default; }
+  .prow .chk { margin-top: 0; }
+  .ptext { flex: 1; min-width: 0; padding: 2px 0; outline: none; overflow-wrap: anywhere; cursor: text; }
+  .pnone { color: var(--muted); font-size: 14px; padding: 2px 16px 4px; }
+  .row.done .ptext { color: var(--muted); text-decoration: line-through; }
+  .pmv { display: flex; gap: 4px; flex: none; }
+  .pmv button { font-size: 12.5px; font-weight: 500; color: var(--muted); background: var(--fill); border-radius: 7px; padding: 4px 8px; }
+  .pmv button:hover { color: var(--ink); }
+  .pmv button.del { background: none; padding: 4px; }
+  .pmv button.del:hover { color: var(--danger); }
+  .gh .hint { text-transform: none; letter-spacing: 0; font-weight: 400; opacity: .8; }
+  .gh .gact { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--accent); font-size: 13px; }
   .gh { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); padding: 0 16px 7px; text-transform: uppercase; letter-spacing: .02em; }
   .gh.bad { color: var(--danger); }
   .gh .n { font-weight: 500; opacity: .8; }
@@ -269,7 +281,7 @@
     <div class="navscroll" id="nav"></div>
     <div class="sidefoot">
       <span class="syncdot" id="syncDot"></span><span id="syncText">Loading…</span>
-      <button id="btnSettings" title="Settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+      <button id="btnTheme" title="Switch to dark mode" aria-label="Switch to dark mode"></button><button id="btnSettings" title="Settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
   </aside>
   <main>
@@ -290,18 +302,19 @@
 <script>
 (function () {
   "use strict";
-  var M365 = "Microsoft 365", FLOW = "Wispr Flow", LS_KEY = "team-tasks-state";
+  var M365 = "Microsoft 365", FLOW = "Wispr Flow", LS_KEY = "team-tasks-state", THEME_KEY = "team-tasks-theme";
   var COLORS = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#64748b", "#14b8a6", "#a16207"];
   var ESTIMATES = [0, 15, 30, 45, 60, 90, 120, 180, 240, 360, 480];
 
   /* ---------- State ---------- */
   function blank() {
     return {
-      v: 1, nextId: 1, tasks: [], projects: [], people: [],
+      v: 1, nextId: 1, tasks: [], projects: [], people: [], personal: [],
       inbox: { lastScanMail: null, lastScanFlow: null, items: [], seen: [], dismissed: [], note: "" },
-      settings: { me: "", teamMailbox: "", includeShared: true, forTeam: true, firstDays: 7 }
+      settings: { me: "", teamMailbox: "", includeShared: true, forTeam: true, firstDays: 7, theme: "system" }
     };
   }
+  var PSECS = ["now", "next", "later"], PLABEL = { now: "Now", next: "Next", later: "Later" }, PHINT = { now: "this week", next: "next few weeks", later: "no rush" };
   var state = blank();
   var view = "today", openId = null, query = "", profileName = "";
   var localMode = false, dbRef = null, writing = false, dirty = false, loaded = false, canSave = null, saveTimer = null, serverOk = false, heldSince = null, bootAt = new Date().toISOString();
@@ -309,7 +322,9 @@
 
   function normalize() {
     var b = blank();
-    ["tasks", "projects", "people"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
+    ["tasks", "projects", "people", "personal"].forEach(function (k) { if (!Array.isArray(state[k])) state[k] = []; });
+    state.personal = state.personal.filter(function (x) { return x && x.id; });
+    state.personal.forEach(function (x) { if (PSECS.indexOf(x.sec) < 0) x.sec = "now"; x.text = String(x.text || ""); if (!x.doneAt) x.doneAt = null; });
     if (!state.nextId) state.nextId = 1;
     state.inbox = Object.assign(b.inbox, state.inbox || {});
     ["items", "seen", "dismissed"].forEach(function (k) { if (!Array.isArray(state.inbox[k])) state.inbox[k] = []; });
@@ -557,6 +572,8 @@
     back: svg('<path d="M15 5l-7 7 7 7"/>', ' style="stroke-width:2.4"'),
     ext: svg('<path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>'),
     trash: svg('<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>'),
+    moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+    leaf: svg('<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19l7-7"/>'),
     search: svg('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>')
   };
 
@@ -573,6 +590,7 @@
       navItem("all", ICON.tray, "All open tasks", o.length, false, "gray") +
       navItem("waiting", ICON.hourglass, "Waiting on", o.filter(function (t) { return t.waiting; }).length, false, "orange") +
       navItem("done", ICON.checkCircle, "Done", state.tasks.filter(function (t) { return t.status === "done" && t.doneAt && t.doneAt.slice(0, 10) === T; }).length, false, "green");
+    h += '<div class="sect">Personal</div>' + navItem("personal", ICON.leaf, "My list", state.personal.filter(function (x) { return !x.doneAt; }).length, false, "teal");
     h += '<div class="sect">Projects<button data-act="newProject" title="New project">+</button></div>';
     if (!state.projects.length) h += '<div class="muted" style="padding:2px 10px;font-size:12.5px">No projects yet</div>';
     state.projects.slice().sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }).forEach(function (p) {
@@ -616,6 +634,7 @@
   function renderMain() {
     var title = "", sub = "", h = "";
     if (view === "inbox") { renderInbox(); return; }
+    if (view === "personal") { renderPersonal(); return; }
     var groups = groupsFor(view);
     if (view === "today") { title = "Today"; sub = new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }); }
     else if (view === "upcoming") { title = "Upcoming"; sub = "Everything with a future due date"; }
@@ -665,6 +684,32 @@
     var m = { today: ["Nothing due today", "Enjoy the calm, or pull something forward from Upcoming."], upcoming: ["Nothing scheduled", "Give tasks a due date to see them here."], all: ["All clear", "No open tasks."], waiting: ["Not waiting on anyone", "Set “Waiting on” in a task when it's blocked on a teammate."], done: ["Nothing done yet", "Completed tasks show up here."] };
     var e = m[view] || ["Nothing here yet", "Add a task above."];
     return '<div class="empty"><b>' + e[0] + "</b>" + e[1] + "</div>";
+  }
+
+  /* ---------- Personal list: Now / Next / Later, nothing else ---------- */
+  function pid() { return "my" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function pItem(id) { return state.personal.filter(function (x) { return x.id === id; })[0]; }
+  function pRow(x) {
+    var mv = x.doneAt ? "" : PSECS.filter(function (k) { return k !== x.sec; }).map(function (k) {
+      return '<button data-act="pMove" data-sec="' + k + '" title="Move to ' + PLABEL[k] + '">' + PLABEL[k] + "</button>";
+    }).join("");
+    return '<div class="row prow' + (x.doneAt ? " done" : "") + '" data-ps="' + esc(x.id) + '">' +
+      '<button class="chk" data-act="pToggle" aria-label="' + (x.doneAt ? "Mark not done" : "Mark done") + '">' + ICON.check + "</button>" +
+      '<div class="ptext" contenteditable="plaintext-only" role="textbox" aria-label="Item" spellcheck="false">' + esc(x.text) + "</div>" +
+      '<div class="pmv">' + mv + '<button class="del" data-act="pDel" title="Delete" aria-label="Delete">' + ICON.trash + "</button></div></div>";
+  }
+  function renderPersonal() {
+    $("vTitle").textContent = "My list"; $("vSub").textContent = "Personal things. Not part of your work tasks.";
+    var q = query.toLowerCase(), match = function (x) { return !q || x.text.toLowerCase().indexOf(q) >= 0; };
+    var h = '<div class="quick"><span class="plus">' + ICON.plus + '</span><input id="pquick" placeholder="Add to Now…" autocomplete="off" aria-label="Add a personal item"></div>';
+    PSECS.forEach(function (k) {
+      var items = state.personal.filter(function (x) { return !x.doneAt && x.sec === k && match(x); });
+      h += '<div class="group"><div class="gh">' + PLABEL[k] + ' <span class="n">' + items.length + '</span><span class="hint">· ' + PHINT[k] + "</span></div>" +
+        (items.length ? '<div class="card">' + items.map(pRow).join("") + "</div>" : '<div class="pnone">Nothing here</div>') + "</div>";
+    });
+    var done = state.personal.filter(function (x) { return x.doneAt && match(x); }).sort(function (a, b) { return a.doneAt < b.doneAt ? 1 : -1; });
+    if (done.length) h += '<div class="group"><div class="gh">Done <span class="n">' + done.length + '</span><button class="gact" data-act="pClear">Clear done</button></div><div class="card">' + done.slice(0, 10).map(pRow).join("") + "</div></div>";
+    $("main").innerHTML = h;
   }
 
   function renderInbox() {
@@ -745,8 +790,17 @@
     h += '<div class="blk muted" style="font-size:12px">Created ' + esc(new Date(t.created).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + "</div></div>";
     d.innerHTML = h;
   }
+  var darkMq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function isDark() { var t = state.settings.theme; return t === "dark" || (t !== "light" && !!(darkMq && darkMq.matches)); }
+  function applyTheme() {
+    var t = state.settings.theme, r = document.documentElement;
+    if (t === "light" || t === "dark") r.setAttribute("data-theme", t); else r.removeAttribute("data-theme");
+    lsSet(THEME_KEY, t || "system");
+    var d = isDark(), b = $("btnTheme"), lbl = d ? "Switch to light mode" : "Switch to dark mode";
+    b.innerHTML = d ? ICON.sun : ICON.moon; b.title = lbl; b.setAttribute("aria-label", lbl);
+  }
   function render(opts) {
-    renderNav(); renderMain();
+    applyTheme(); renderNav(); renderMain();
     if (!(opts && opts.keepDetail)) renderDetail(opts && opts.forceDetail);
     updateLive();
   }
@@ -827,6 +881,8 @@
         c.people = (t.people || []).map(nameOf).filter(Boolean).map(function (n) { return findPerson(n, true); });
         state.tasks.push(c);
       });
+      var have = {}; state.personal.forEach(function (x) { have[x.id] = 1; });
+      (local.personal || []).forEach(function (x) { if (!have[x.id]) state.personal.push(x); });
     }
     normalize(); render(); dirty = true; flush();
   }
@@ -925,7 +981,8 @@
   }
   function settingsModal() {
     var s = state.settings;
-    var body = inputField("me", "Your name (as it appears in emails and meeting notes)", s.me || profileName, "Your full name") +
+    var body = '<label class="field">Appearance<select data-k="theme">' + [["system", "Match my device"], ["light", "Light"], ["dark", "Dark"]].map(function (o) { return '<option value="' + o[0] + '"' + (s.theme === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
+      inputField("me", "Your name (as it appears in emails and meeting notes)", s.me || profileName, "Your full name") +
       inputField("teamMailbox", "Team or shared mailbox to also scan (optional)", s.teamMailbox, "team@company.com", "email", "You need access to this mailbox in Outlook. Leave empty to scan only your own mail.") +
       '<label class="field check"><input type="checkbox" data-k="includeShared"' + (s.includeShared ? " checked" : "") + '><span>Include meetings teammates shared with me in Wispr Flow</span></label>' +
       '<label class="field check"><input type="checkbox" data-k="forTeam"' + (s.forTeam ? " checked" : "") + '><span>Also suggest tasks owned by people on my People list<br><span class="help">Off: only suggest things you need to do.</span></span></label>' +
@@ -940,6 +997,7 @@
       if (v === "csv") return download("tasks.csv", toCsv(), "text/csv");
       if (v === "import") return importJson();
       if (!v) return;
+      s.theme = v.theme || "system";
       s.me = v.me.trim(); s.teamMailbox = v.teamMailbox.trim(); s.includeShared = !!v.includeShared; s.forTeam = !!v.forTeam;
       s.firstDays = Math.max(1, Math.min(30, parseInt(v.firstDays, 10) || 7));
       changed();
@@ -1241,6 +1299,15 @@
     var v = e.target.closest("[data-view]");
     if (v) { e.preventDefault(); setView(v.getAttribute("data-view")); return; }
     var a = e.target.closest("[data-act]"), row = e.target.closest(".row"), sg = e.target.closest(".sugg");
+    var pr = e.target.closest("[data-ps]");
+    if (pr) {
+      var px = pItem(pr.getAttribute("data-ps")), pa = a && a.getAttribute("data-act"); if (!px) return;
+      if (pa === "pToggle") { px.doneAt = px.doneAt ? null : new Date().toISOString(); changed(); return; }
+      if (pa === "pMove") { px.sec = a.getAttribute("data-sec"); changed(); toast("Moved to " + PLABEL[px.sec] + "."); return; }
+      if (pa === "pDel") { var ps = snapshot(); state.personal = state.personal.filter(function (y) { return y !== px; }); changed(); toast("Deleted.", ps); return; }
+      return;
+    }
+    if (a && a.getAttribute("data-act") === "pClear") { var pc = snapshot(); state.personal = state.personal.filter(function (y) { return !y.doneAt; }); changed(); toast("Cleared done items.", pc); return; }
     var act = a && a.getAttribute("data-act");
     var t = row ? task(row.getAttribute("data-id")) : (e.target.closest("#detail") ? task(openId) : null);
     if (act === "toggle" && t) { toggleDone(t); return; }
@@ -1276,6 +1343,7 @@
     var el = e.target;
     if (el.id === "quick") { $("qhint").innerHTML = quickPreview(el.value); return; }
     if (el.id === "search") { query = el.value.trim(); renderMain(); return; }
+    if (el.classList.contains("ptext")) { var px = pItem(el.closest("[data-ps]").getAttribute("data-ps")); if (px) { px.text = el.textContent.slice(0, 300); save(); } return; }
     var sg = el.closest(".sugg");
     if (sg && el.getAttribute("data-sf") === "title") {
       var s = state.inbox.items.filter(function (x) { return x.id === sg.getAttribute("data-sid"); })[0];
@@ -1310,6 +1378,13 @@
   });
   document.addEventListener("keydown", function (e) {
     var el = e.target;
+    if (el.id === "pquick" && e.key === "Enter") {
+      var txt = el.value.trim(); if (!txt) return;
+      state.personal.push({ id: pid(), text: txt.slice(0, 300), sec: "now", doneAt: null, created: new Date().toISOString() });
+      changed(); var pq = $("pquick"); if (pq) pq.focus();
+      return;
+    }
+    if (el.classList.contains("ptext") && e.key === "Enter") { e.preventDefault(); el.blur(); return; }
     if (el.id === "quick" && e.key === "Enter") {
       var t = addQuick(el.value);
       if (t) { el.value = ""; changed(); toast("Added: " + t.title); var q = $("quick"); if (q) { q.focus(); $("qhint").innerHTML = quickPreview(""); } }
@@ -1321,9 +1396,14 @@
       if ($("app").classList.contains("nav-open")) { $("app").classList.remove("nav-open"); $("scrim").classList.remove("show"); }
       return;
     }
-    if (/INPUT|TEXTAREA|SELECT/.test(el.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/INPUT|TEXTAREA|SELECT/.test(el.tagName) || el.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "/") { e.preventDefault(); $("search").focus(); }
-    else if (e.key === "n" || e.key === "N") { var q = $("quick"); if (q) { e.preventDefault(); q.focus(); } }
+    else if (e.key === "n" || e.key === "N") { var q = $("quick") || $("pquick"); if (q) { e.preventDefault(); q.focus(); } }
+  });
+  document.addEventListener("focusout", function (e) {
+    var el = e.target; if (!el.classList || !el.classList.contains("ptext")) return;
+    var px = pItem(el.closest("[data-ps]").getAttribute("data-ps"));
+    if (px && !px.text.trim()) { state.personal = state.personal.filter(function (y) { return y !== px; }); changed(); }
   });
   $("btnMenu").addEventListener("click", function () { $("app").classList.add("nav-open"); $("scrim").classList.add("show"); });
   $("scrim").addEventListener("click", function () {
@@ -1331,6 +1411,9 @@
     $("app").classList.remove("nav-open"); $("scrim").classList.remove("show");
   });
   $("btnSettings").addEventListener("click", settingsModal);
+  $("btnTheme").addEventListener("click", function () { state.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); });
+  if (darkMq && darkMq.addEventListener) darkMq.addEventListener("change", applyTheme);
+  state.settings.theme = lsGet(THEME_KEY, "system"); applyTheme();
   $("timerOpen").addEventListener("click", function () { var id = $("timerPill").dataset.id; if (task(id)) { openId = id; render({ forceDetail: true }); } });
   $("timerStop").addEventListener("click", function () { var t = task($("timerPill").dataset.id); if (t) { stopTimer(t); changed({ forceDetail: true }); toast("Timer stopped at " + fmtClock(spentSec(t)) + "."); } });
 

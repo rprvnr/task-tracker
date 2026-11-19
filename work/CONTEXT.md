@@ -13,7 +13,9 @@ This file is for anyone changing the code, and for an AI assistant you ask to he
 - CSS grid with three columns: sidebar (248px), main list, and detail panel (400px).
 - At 1180px or narrower, the detail panel becomes an overlay.
 - At 820px or narrower, the sidebar becomes a drawer. The `.app.nav-open` class opens it, and `#scrim` covers the page behind it.
-- Colours are CSS variables at the top of the file. A `prefers-color-scheme: dark` block holds the dark theme.
+- Colours are CSS variables at the top of the file. Dark colours apply under `:root[data-theme="dark"]`, or under `prefers-color-scheme: dark` unless `data-theme="light"` is set.
+- `applyTheme()` sets `data-theme` from `state.settings.theme` (`system`, `light` or `dark`) and mirrors it to localStorage `team-tasks-theme`, so the page opens in the right mode before data loads.
+- The personal list is `state.personal`: `{ id, text, sec: "now"|"next"|"later", doneAt, created }`. `renderPersonal()` draws it. Rows carry `data-ps`; actions are `pToggle`, `pMove`, `pDel`, `pClear`. Text is a contenteditable `.ptext`; emptying it deletes the item.
 
 ## Data model
 ```js

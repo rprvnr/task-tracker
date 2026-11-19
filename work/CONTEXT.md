@@ -48,6 +48,10 @@ state = {
 - `normalize()` fixes missing fields. It also clears links to deleted projects and people. Run it after any load or import.
 - Views are strings: `today`, `upcoming`, `all`, `waiting`, `done`, `inbox`, `project:<id>` and `person:<id>`. `groupsFor(view)` builds the sections for each view.
 - `parseQuick(text)` handles the quick-add syntax. README.md lists the syntax.
+- **Look:** Apple-style. Icons are inline SVGs in the `ICON` map (no emoji). Nav items use coloured icon tiles. Status uses a segmented control (`.seg`, `data-act="setStatus"`, with `aria-pressed`).
+- **Undo:** single accept and dismiss save a snapshot; the toast's Undo button (`#toastUndo`) restores it.
+- **Export:** uses `claude.use('downloads').save({filename, data})` when available, else a normal browser download. **Import** is a paste box in a dialog; the JSON must contain a `tasks` array.
+- **Links** open in the same tab (no `target=_blank`), since the page runs in a frame.
 
 ## Storage in Claude mode
 - **Document path:** `data/users/<user.id()>/state`. Each user has their own document, so nobody can see anyone else's tasks.

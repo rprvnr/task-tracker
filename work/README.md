@@ -11,13 +11,14 @@ Everything is in `index.html`. There is nothing to install.
 - **Timings:**
   - due date and time
   - an **estimate** (for example 30m or 2h)
-  - a **timer** you start and stop, which adds up the time spent
+  - a **timer** you start and stop, which adds up the time spent. While it runs, a pill at the top shows the time: tap it to open the task, or tap the stop button
   - views show estimated and logged time
 - **Views:** Today, Upcoming, All open tasks, Waiting on, Done, plus one view per project and per person.
-- **Suggestions:** scan Outlook and Wispr Flow for action items. Add or dismiss each one, or all at once.
+- **Status:** a segmented control in the task details sets To do, In progress or Done.
+- **Suggestions:** scan Outlook and Wispr Flow for action items. Add or dismiss each one, or all at once. Adding or dismissing a single suggestion shows **Undo**.
 - **Works on any screen:**
   - On desktop, three columns: sidebar, list and task details.
-  - On a phone, the sidebar becomes a menu (☰) and task details open full-screen.
+  - On a phone, the sidebar becomes a menu and task details open full-screen, with a Back button.
   - Light and dark mode follow your system.
 
 ## Quick add
@@ -87,7 +88,11 @@ If you **dismiss** a suggestion, it won't come back.
 | First scan looks back | How many days the first scan reads (1–30). |
 | Re-read recent messages | Forgets which messages were read, so the next scan reads them again. Existing tasks are still not suggested. |
 | Forget dismissed | Lets dismissed suggestions appear again. |
-| Export JSON / CSV, Import JSON | Back up, move or report on your tasks. Import replaces your current list. |
+| Export JSON / CSV, Import JSON | Back up, move or report on your tasks. Inside Claude, exports are saved with the download prompt. To import, paste the contents of an exported JSON file. Import replaces your current list; a file that isn't a task export is rejected and nothing changes. |
+
+## Keyboard
+- `/` focuses search.
+- `Esc` closes the task details or a dialog.
 
 ## Privacy
 - Each person's tasks are stored separately, under their own Claude account.
